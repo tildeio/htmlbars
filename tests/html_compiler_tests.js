@@ -140,6 +140,14 @@ test("The compiler passes along the hash arguments", function() {
   compilesTo('<div>{{testing first="one" second="two"}}</div>', '<div>one-two</div>');
 });
 
+test("The compiler accepts dashes in the hash argument names", function() {
+  registerHelper('testing', function(options) {
+    return options.hash['hash-argument'];
+  });
+
+  compilesTo('<div>{{testing hash-argument="testing"}}</div>', '<div>testing</div>');
+});
+
 test("The compiler passes along the types of the hash arguments", function() {
   registerHelper('testing', function(options) {
     return options.hashTypes.first + '-' + options.hash.first;
@@ -528,7 +536,7 @@ test("Data-bound block helpers", function() {
   object.shouldRender = true;
   callback();
 
-  equalHTML(fragment, '<p>hi</p> content <p>Appears!</p> more <em>content</em> here'); 
+  equalHTML(fragment, '<p>hi</p> content <p>Appears!</p> more <em>content</em> here');
 
   object.shouldRender = false;
   callback();
