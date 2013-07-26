@@ -391,6 +391,10 @@ test("It is possible to trigger a re-render of an attribute from a child resolut
       options.rerender();
     }
 
+    ok(typeof options.rerender === 'function');
+    equal(options.attrName, 'href');
+    equal(options.element.tagName, 'A');
+
     return this[path];
   });
 
@@ -528,7 +532,7 @@ test("Data-bound block helpers", function() {
   object.shouldRender = true;
   callback();
 
-  equalHTML(fragment, '<p>hi</p> content <p>Appears!</p> more <em>content</em> here'); 
+  equalHTML(fragment, '<p>hi</p> content <p>Appears!</p> more <em>content</em> here');
 
   object.shouldRender = false;
   callback();
