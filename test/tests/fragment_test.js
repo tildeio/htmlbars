@@ -34,7 +34,7 @@ function hydratorFor(ast) {
   var opcodes = hydrate.compile(ast);
   var hydrate2 = new HydrationCompiler();
   var program = hydrate2.compile(opcodes, []);
-  return new Function("Placeholder", "fragment", "context", "helpers", program);
+  return new Function("Placeholder", "fragment", "context", "helpers", "dom", program);
 }
 
 module('fragment');
@@ -43,7 +43,7 @@ test('compiles a fragment', function () {
   var ast = preprocess("<div>{{foo}} bar {{baz}}</div>");
   var fragment = fragmentFor(ast);
 
-  equalHTML(fragment, "<div> bar </div>");
+  equalHTML(fragment, "<div id=\"HTMLBARS-0\"> bar </div>");
 });
 
 test('converts entities to their char/string equivalent', function () {
@@ -73,7 +73,7 @@ test('hydrates a fragment with placeholder mustaches', function () {
     }
   };
 
-  hydrate(Placeholder, fragment, context, helpers);
+  hydrate(Placeholder, fragment, context, helpers, dom);
 
   equal(contentResolves.length, 2);
 
@@ -126,7 +126,7 @@ test('test auto insertion of text nodes for needed edges a fragment with placeho
     }
   };
 
-  hydrate(FakePlaceholder, fragment, context, helpers);
+  hydrate(FakePlaceholder, fragment, context, helpers, dom);
 
   equal(placeholders.length, 3);
 

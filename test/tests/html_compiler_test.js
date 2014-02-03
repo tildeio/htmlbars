@@ -341,6 +341,8 @@ test("Mountain range of nesting", function() {
              'FOO<span></span>BAR<span>ARGH<span><span>BAZ</span></span></span>', context);
   compilesTo('{{foo}}<span>{{bar}}<a>{{baz}}<em>{{boo}}{{brew}}</em>{{bat}}</a></span><span><span>{{flute}}</span></span>{{argh}}',
              'FOO<span>BAR<a>BAZ<em>BOOBREW</em>BAT</a></span><span><span>FLUTE</span></span>ARGH', context);
+  compilesTo('{{foo}}<span id="love-me">{{bar}}<a>{{baz}}<em>{{boo}}{{brew}}</em>{{bat}}</a></span><span><span id="du-hast">{{flute}}</span></span>{{argh}}',
+             'FOO<span id="love-me">BAR<a>BAZ<em>BOOBREW</em>BAT</a></span><span><span id="du-hast">FLUTE</span></span>ARGH', context);
 });
 
 // test("Attributes can use computed paths", function() {

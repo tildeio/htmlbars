@@ -1,6 +1,8 @@
 import { TemplateCompiler } from "htmlbars/compiler/template";
 import { Placeholder } from "htmlbars/runtime/placeholder";
 import { preprocess } from "htmlbars/parser";
+import { domHelpers } from "htmlbars/runtime/dom_helpers";
+
 
 module("TemplateCompiler");
 
@@ -11,17 +13,7 @@ function equalHTML(fragment, html) {
   QUnit.push(div.innerHTML === html, div.innerHTML, html);
 }
 
-var dom = {
-  createDocumentFragment: function () {
-    return document.createDocumentFragment();
-  },
-  createElement: function (name) {
-    return document.createElement(name);
-  },
-  appendText: function (node, string) {
-    node.appendChild(document.createTextNode(string));
-  }
-};
+var dom = domHelpers();
 
 var helpers = {
   CONTENT: function(placeholder, helperName, context, params, options, helpers) {
