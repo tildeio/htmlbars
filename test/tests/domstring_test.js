@@ -3,15 +3,9 @@ import { Placeholder } from "htmlbars/runtime/placeholder";
 import { preprocess } from "htmlbars/parser";
 import { domStringHelpers } from "htmlbars/runtime/domstring_helpers";
 import { runtimeHelpers } from "htmlbars/runtime/domstring_helpers";
+import { equalHTML } from "test_helpers";
 
 module("DomStrings");
-
-function equalHTML(fragment, html) {
-  var div = document.createElement("div");
-  div.appendChild(fragment.cloneNode(true));
-
-  QUnit.push(div.innerHTML === html, div.innerHTML, html);
-}
 
 var dom = domStringHelpers();
 
