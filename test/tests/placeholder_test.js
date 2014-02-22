@@ -6,7 +6,7 @@ import { equalHTML } from "test_helpers";
 function placeholderTests(factory) {
   testDom('appendChild '+factory.name, function (dom) {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create( dom ),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -36,7 +36,7 @@ function placeholderTests(factory) {
 
   testDom('appendText '+factory.name, function (dom) {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create( dom ),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -61,7 +61,7 @@ function placeholderTests(factory) {
 
   test('appendHTML '+factory.name, function () {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create( dom ),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -85,7 +85,7 @@ function placeholderTests(factory) {
   });
 
   testDom('clear '+factory.name, function (dom) {
-    var setup = factory.create( dom ),
+    var setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -101,7 +101,7 @@ function placeholderTests(factory) {
 
   testDom('clear after insert '+factory.name, function (dom) {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create( dom ),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -118,7 +118,7 @@ function placeholderTests(factory) {
   });
 
   testDom('replace '+factory.name, function (dom) {
-    var setup = factory.create( dom ),
+    var setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -138,7 +138,7 @@ function placeholderTests(factory) {
 
 function placeholderListTests(factory) {
   testDom('various list operations with fragments '+factory.name, function (dom) {
-    var setup = factory.create( dom ),
+    var setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -180,7 +180,7 @@ function placeholderListTests(factory) {
   });
 }
 
-function fragmentFor( dom ) {
+function fragmentFor(dom) {
   var fragment = dom.createDocumentFragment();
   for (var i=1,l=arguments.length; i<l; i++) {
     fragment.appendChild(arguments[i]);
@@ -311,7 +311,7 @@ function iterateCombinations(parents, starts, ends, contents, callback) {
       for (var k=0; k<ends.length; k++) {
         for (var l=0; l<contents.length; l++) {
           var factory = buildFactory(parents[i], starts[j], ends[k], contents[l]);
-          if (factory.create( dom ) === null) continue; // unsupported combo
+          if (factory.create(dom) === null) continue; // unsupported combo
           callback(factory);
         }
       }

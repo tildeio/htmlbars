@@ -9,7 +9,7 @@ module("DomStrings");
 
 var dom = domStringHelpers();
 
-var helpers = runtimeHelpers( dom );
+var helpers = runtimeHelpers(dom);
 test("it works", function testFunction() {
   /* jshint evil: true */
 //  var ast = preprocess('<div>{{#if working}}Hello {{firstName}} {{lastName}}!{{else}}Hola {{firstName}}!{{/if}}</div>{{foo}}{{#foo}}{{#bar}}{{/bar}}{{/foo}}');
@@ -19,9 +19,9 @@ test("it works", function testFunction() {
 //  var ast = preprocess('a{{#b}}c{{/b}}g{{#h}}i{{/h}}m');
   var ast = preprocess('a{{b}}g{{h}}m');
 //  var ast = preprocess('<div></div>');
-  var compiler = new TemplateCompiler( domStringHelpers() );
+  var compiler = new TemplateCompiler(domStringHelpers());
 
-  var program = compiler.compile( ast );
+  var program = compiler.compile(ast);
 
   var template = new Function("dom", "Placeholder", "return " + program)(dom, Placeholder);
 
@@ -35,5 +35,5 @@ test("it works", function testFunction() {
       helpers: helpers
   });
 
-  equal( compiled.toString(), "a<script id=\"metamorph-0\"></script>B<script id=\"metamorph-0-end\"></script>g<script id=\"metamorph-1\"></script>H<script id=\"metamorph-1-end\"></script>m" );
+  equal(compiled.toString(), "a<script id=\"htmlbars-0\"></script>B<script id=\"htmlbars-0-end\"></script>g<script id=\"htmlbars-1\"></script>H<script id=\"htmlbars-1-end\"></script>m");
 });

@@ -20,7 +20,7 @@ var helpers = {
   }
 };
 
-testDom("it works", function( dom ) {
+testDom("it works", function(dom) {
   /* jshint evil: true */
   var ast = preprocess('<div>{{#if working}}Hello {{firstName}} {{lastName}}!{{/if}}</div>');
   var compiler = new TemplateCompiler();

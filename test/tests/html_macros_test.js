@@ -6,11 +6,11 @@ import { Placeholder } from "htmlbars/runtime/placeholder";
 
 module("HTML Macros");
 
-function compile( dom, spec, options ){
-  return compileSpec( spec, options )( dom, Placeholder );
-};
+function compile(dom, spec, options){
+  return compileSpec(spec, options)(dom, Placeholder);
+}
 
-testDom("A simple HTML macro can replace a tagName", function( dom ) {
+testDom("A simple HTML macro can replace a tagName", function(dom) {
   registerMacro('testing', function test(element) {
     return element.attributes.is && element.attributes.is[0] === 'span';
   }, function mutate(element) {
@@ -24,7 +24,7 @@ testDom("A simple HTML macro can replace a tagName", function( dom ) {
   equalDomHTML(dom, fragment, "<span><b>hi</b></span>");
 });
 
-testDom("A simple HTML macro can completely remove the node", function( dom ) {
+testDom("A simple HTML macro can completely remove the node", function(dom) {
   registerMacro('testing', function test(element) {
     return element.tag === 'noop';
   }, function mutate() {
@@ -37,7 +37,7 @@ testDom("A simple HTML macro can completely remove the node", function( dom ) {
   equalDomHTML(dom, fragment, "loremdolor");
 });
 
-testDom("An HTML macro can transclude its children into a new node", function( dom ) {
+testDom("An HTML macro can transclude its children into a new node", function(dom) {
   registerMacro('testing', function test(element) {
     return element.tag === 'transclude';
   }, function mutate(element) {

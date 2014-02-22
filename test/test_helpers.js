@@ -2,29 +2,29 @@ import { domHelpers } from "htmlbars/runtime/dom_helpers";
 import { domStringHelpers } from "htmlbars/runtime/domstring_helpers";
 
 export var dom = domHelpers({
-  fragmentToString: function( fragment ){
+  fragmentToString: function(fragment){
     var div = document.createElement("div");
     div.appendChild(fragment.cloneNode(true));
     return div.innerHTML;
   },
 
-  fragmentToDocumentFragment: function( fragment ) {
+  fragmentToDocumentFragment: function(fragment) {
     return fragment;
   }
 });
 
 export var domString = domStringHelpers({
-  fragmentToString: function( fragment ) {
+  fragmentToString: function(fragment) {
     return fragment.toString();
   },
 
-  fragmentToDocumentFragment: function( fragment ) {
+  fragmentToDocumentFragment: function(fragment) {
     var f = document.createDocumentFragment();
     var d = document.createElement( 'div' ); //can't use innerHTML on documentFragment
     d.innerHTML = fragment.toString();
 
-    while( d.childNodes.length > 0 ) {
-      f.appendChild( d.childNodes[ 0 ] );
+    while(d.childNodes.length > 0) {
+      f.appendChild(d.childNodes[0]);
     }
 
     return f;
@@ -45,14 +45,14 @@ export function equalDomHTML(dom,fragment, html) {
 };
 
 // Test all DOM representations
-export function testDom( name, cb ) {
+export function testDom(name, cb) {
   test( name + " - dom", function(){
-    cb( dom );
+    cb(dom);
   });
 
   test( name + " - domstring", function(){
 //    try{
-      cb( domString );
+      cb(domString);
 //    } catch(e) {
 //      console.log(e.stack);
 //      throw e;
