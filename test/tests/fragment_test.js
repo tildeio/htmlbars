@@ -6,6 +6,7 @@ import { domHelpers } from "htmlbars/runtime/dom_helpers";
 import { Placeholder } from "htmlbars/runtime/placeholder";
 import { preprocess } from "htmlbars/parser";
 import { testDom, equalDomHTML } from "test_helpers";
+import { NodeTypes } from "htmlbars/utils";
 
 var dom = domHelpers();
 
@@ -125,13 +126,13 @@ testDom('test auto insertion of text nodes for needed edges a fragment with plac
   equal(placeholders.length, 3);
 
   var t = placeholders[0].start;
-  equal(t.nodeType, 3);
+  equal(t.nodeType, NodeTypes.TEXT_NODE);
   equal(t.textContent , '');
   equal(placeholders[1].start, null);
   equal(placeholders[1].end, null);
 
   equal(placeholders[2].start, placeholders[1].parent());
-  equal(placeholders[2].end.nodeType, 3);
+  equal(placeholders[2].end.nodeType, NodeTypes.TEXT_NODE);
   equal(placeholders[2].end.textContent, '');
 
   placeholders[0].appendText('A');
