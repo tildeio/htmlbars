@@ -1,10 +1,12 @@
 import { Placeholder } from "htmlbars/runtime/placeholder";
 import { PlaceholderList } from "htmlbars/runtime/placeholder_list";
+import { testDom, equalDomHTML, dom } from "test_helpers"; //TODO
+import { equalHTML } from "test_helpers";
 
 function placeholderTests(factory) {
-  test('appendChild '+factory.name, function () {
+  testDom('appendChild '+factory.name, function (dom) {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create(),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -12,29 +14,29 @@ function placeholderTests(factory) {
       endHTML = setup.endHTML,
       p, html;
 
-    p = document.createElement('p');
-    p.appendChild(document.createTextNode('appended'));
+    p = dom.createElement('p');
+    p.appendChild(dom.createTextNode('appended'));
 
     placeholder.appendChild(p);
 
     html = startHTML+contentHTML+'<p>appended</p>'+endHTML;
 
-    equalHTML(fragment, html);
+    equalDomHTML(dom,fragment, html);
 
-    fixture.appendChild(setup.fragment);
-
-    p = document.createElement('p');
-    p.appendChild(document.createTextNode('more'));
+    p = dom.createElement('p');
+    p.appendChild(dom.createTextNode('more'));
     placeholder.appendChild(p);
+
+    fixture.appendChild(dom.fragmentToDocumentFragment(fragment));
 
     html = startHTML+contentHTML+'<p>appended</p><p>more</p>'+endHTML;
 
     equal(fixture.innerHTML, html);
   });
 
-  test('appendText '+factory.name, function () {
+  testDom('appendText '+factory.name, function (dom) {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create(),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -46,11 +48,11 @@ function placeholderTests(factory) {
 
     html = startHTML+contentHTML+'appended text'+endHTML;
 
-    equalHTML(fragment, html);
-
-    fixture.appendChild(fragment);
+    equalDomHTML(dom, fragment, html);
 
     placeholder.appendText(' more');
+
+    fixture.appendChild(dom.fragmentToDocumentFragment(fragment));
 
     html = startHTML+contentHTML+'appended text more'+endHTML;
 
@@ -59,7 +61,7 @@ function placeholderTests(factory) {
 
   test('appendHTML '+factory.name, function () {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create(),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -73,17 +75,17 @@ function placeholderTests(factory) {
 
     equalHTML(fragment, html);
 
-    fixture.appendChild(fragment);
-
     placeholder.appendHTML('<p>A</p><p>B</p><p>C</p>');
+
+    fixture.appendChild(dom.fragmentToDocumentFragment(fragment));
 
     html = startHTML+contentHTML+'<p>A</p><p>B</p><p>C</p><p>A</p><p>B</p><p>C</p>'+endHTML;
 
     equal(fixture.innerHTML, html);
   });
 
-  test('clear '+factory.name, function () {
-    var setup = factory.create(),
+  testDom('clear '+factory.name, function (dom) {
+    var setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -94,49 +96,49 @@ function placeholderTests(factory) {
 
     html = startHTML+endHTML;
 
-    equalHTML(fragment, html);
+    equalDomHTML(dom, fragment, html);
   });
 
-  test('clear after insert '+factory.name, function () {
+  testDom('clear after insert '+factory.name, function (dom) {
     var fixture = document.getElementById('qunit-fixture'),
-      setup = factory.create(),
+      setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
       endHTML = setup.endHTML,
       html;
 
-    fixture.appendChild(fragment);
-
     placeholder.clear();
+
+    fixture.appendChild(dom.fragmentToDocumentFragment(fragment));
 
     html = startHTML+endHTML;
 
     equal(fixture.innerHTML, html);
   });
 
-  test('replace '+factory.name, function () {
-    var setup = factory.create(),
+  testDom('replace '+factory.name, function (dom) {
+    var setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
       endHTML = setup.endHTML,
-      p = document.createElement('p'),
+      p = dom.createElement('p'),
       html;
 
-    p.appendChild(document.createTextNode('replaced'));
+    p.appendChild(dom.createTextNode('replaced'));
 
     placeholder.replace(p);
 
     html = startHTML+'<p>replaced</p>'+endHTML;
 
-    equalHTML(fragment, html);
+    equalDomHTML(dom, fragment, html);
   });
 }
 
 function placeholderListTests(factory) {
-  test('various list operations with fragments '+factory.name, function () {
-    var setup = factory.create(),
+  testDom('various list operations with fragments '+factory.name, function (dom) {
+    var setup = factory.create(dom),
       fragment = setup.fragment,
       placeholder = setup.placeholder,
       startHTML = setup.startHTML,
@@ -145,20 +147,20 @@ function placeholderListTests(factory) {
 
     var placeholderList = new PlaceholderList(placeholder);
 
-    var A = element('p', 'A');
-    var B = element('p', 'B');
-    var C = element('p', 'C');
-    var D = element('p', 'D');
-    var E = element('p', 'E');
-    var F = element('p', 'F');
+    var A = element(dom, 'p', 'A');
+    var B = element(dom, 'p', 'B');
+    var C = element(dom, 'p', 'C');
+    var D = element(dom, 'p', 'D');
+    var E = element(dom, 'p', 'E');
+    var F = element(dom, 'p', 'F');
 
-    var fragmentABC = fragmentFor(A,B,C);
-    var fragmentEF = fragmentFor(E,F);
+    var fragmentABC = fragmentFor(dom, A,B,C);
+    var fragmentEF = fragmentFor(dom, E,F);
 
     placeholderList.append([fragmentABC, D, fragmentEF]);
 
     html = startHTML+'<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p><p>F</p>'+endHTML;
-    equalHTML(fragment, html);
+    equalDomHTML(dom, fragment, html);
 
     equal(placeholderList.list[0].start, placeholder.start);
     equal(placeholderList.list[0].end, D);
@@ -170,7 +172,7 @@ function placeholderListTests(factory) {
     placeholderList.replace(1,2);
 
     html = startHTML+'<p>A</p><p>B</p><p>C</p>'+endHTML;
-    equalHTML(fragment, html);
+    equalDomHTML(dom, fragment, html);
 
     equal(placeholderList.list.length, 1);
     equal(placeholderList.list[0].start, placeholder.start);
@@ -178,36 +180,25 @@ function placeholderListTests(factory) {
   });
 }
 
-function equalHTML(fragment, html) {
-  var div = document.createElement("div");
-  div.appendChild(fragment.cloneNode(true));
-
-  QUnit.push(div.innerHTML === html, div.innerHTML, html);
-}
-
-function fragmentFor() {
-  var fragment = document.createDocumentFragment();
-  for (var i=0,l=arguments.length; i<l; i++) {
+function fragmentFor(dom) {
+  var fragment = dom.createDocumentFragment();
+  for (var i=1,l=arguments.length; i<l; i++) {
     fragment.appendChild(arguments[i]);
   }
   return fragment;
 }
 
-function element(tag, text) {
-  var el = document.createElement(tag);
-  el.appendChild(document.createTextNode(text));
+function element(dom, tag, text) {
+  var el = dom.createElement(tag);
+  el.appendChild(dom.createTextNode(text));
   return el;
-}
-
-function textNode(text) {
-  return document.createTextNode(text);
 }
 
 var parents = [
   {
     name: 'with parent as an element',
-    create: function (frag) {
-      var parent = document.createElement('div');
+    create: function (dom, frag) {
+      var parent = dom.createElement('div');
       frag.appendChild(parent);
       return parent;
     },
@@ -216,7 +207,7 @@ var parents = [
   },
   {
     name: 'with parent as a fragment',
-    create: function (frag) {
+    create: function (dom, frag) {
       return frag;
     },
     startHTML: '',
@@ -227,8 +218,8 @@ var parents = [
 var starts = [
   {
     name: 'with sibling before',
-    create: function (parent) {
-      var start = document.createTextNode('Some text before ');
+    create: function (dom, parent) {
+      var start = dom.createTextNode('Some text before ');
       parent.appendChild(start);
       return parent.childNodes.length-1;
     },
@@ -236,7 +227,7 @@ var starts = [
   },
   {
     name: 'with no sibling before',
-    create: function (parent) {
+    create: function (dom, parent) {
       return -1;
     },
     HTML: ''
@@ -246,8 +237,8 @@ var starts = [
 var ends = [
   {
     name: 'and sibling after',
-    create: function (parent) {
-      var end = document.createTextNode(' some text after.');
+    create: function (dom, parent) {
+      var end = dom.createTextNode(' some text after.');
       parent.appendChild(end);
       return parent.childNodes.length-1;
     },
@@ -255,7 +246,7 @@ var ends = [
   },
   {
     name: 'and no sibling after',
-    create: function (parent) {
+    create: function (dom, parent) {
       return -1;
     },
     HTML: ''
@@ -265,20 +256,20 @@ var ends = [
 var contents = [
   {
     name: 'with an empty Placeholder',
-    create: function (parent) { },
+    create: function (dom, parent) { },
     HTML: ''
   },
   {
     name: 'with some paragraphs in the Placeholder',
-    create: function (parent) {
+    create: function (dom, parent) {
       var p;
-      p = document.createElement('p');
+      p = dom.createElement('p');
       p.textContent = 'a';
       parent.appendChild(p);
-      p = document.createElement('p');
+      p = dom.createElement('p');
       p.textContent = 'b';
       parent.appendChild(p);
-      p = document.createElement('p');
+      p = dom.createElement('p');
       p.textContent = 'c';
       parent.appendChild(p);
     },
@@ -290,12 +281,12 @@ function iterateCombinations(parents, starts, ends, contents, callback) {
   function buildFactory(parentFactory, startFactory, endFactory, contentFactory) {
     return {
       name: [parentFactory.name, startFactory.name, endFactory.name, contentFactory.name].join(' '),
-      create: function factory() {
-        var fragment = document.createDocumentFragment(),
-        parent = parentFactory.create(fragment),
-        startIndex = startFactory.create(parent),
-        content = contentFactory.create(parent),
-        endIndex = endFactory.create(parent);
+      create: function factory( dom ) {
+        var fragment = dom.createDocumentFragment(),
+        parent = parentFactory.create(dom, fragment),
+        startIndex = startFactory.create(dom, parent),
+        content = contentFactory.create(dom, parent),
+        endIndex = endFactory.create(dom, parent);
 
         // this is prevented in the parser by generating
         // empty text nodes at boundaries of fragments
@@ -320,7 +311,7 @@ function iterateCombinations(parents, starts, ends, contents, callback) {
       for (var k=0; k<ends.length; k++) {
         for (var l=0; l<contents.length; l++) {
           var factory = buildFactory(parents[i], starts[j], ends[k], contents[l]);
-          if (factory.create() === null) continue; // unsupported combo
+          if (factory.create(dom) === null) continue; // unsupported combo
           callback(factory);
         }
       }
