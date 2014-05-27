@@ -1,5 +1,6 @@
 import TemplateVisitor from "./template_visitor";
 import { processOpcodes } from "./utils";
+import { replaceFirstOpcode, replaceLastOpcode } from "./helpers";
 
 function FragmentOpcodeCompiler() {
   this.opcodes = [];
@@ -20,6 +21,10 @@ FragmentOpcodeCompiler.prototype.opcode = function(type, params) {
 
 FragmentOpcodeCompiler.prototype.text = function(text) {
   this.opcode('text', [text.chars]);
+};
+
+FragmentOpcodeCompiler.prototype.selectDOMHelper = function(domHelper) {
+  this.opcode('selectDOMHelper', [domHelper]);
 };
 
 FragmentOpcodeCompiler.prototype.openElement = function(element) {
@@ -51,9 +56,8 @@ FragmentOpcodeCompiler.prototype.endProgram = function(program) {
     if (statement.type === 'text') {
       this.opcodes[0][0] = 'rootText';
     } else if (statement.type === 'element') {
-      var opcodes = this.opcodes;
-      opcodes[0][0] = 'openRootElement';
-      opcodes[opcodes.length-1][0] = 'closeRootElement';
+      replaceFirstOpcode(this.opcodes, 'openElement', 'openRootElement');
+      replaceLastOpcode(this.opcodes, 'closeElement', 'closeRootElement');
     }
   } else {
     this.opcode('endFragment');

@@ -39,3 +39,39 @@ export function prepareHelper(stack, size) {
     args: array(args)
   };
 }
+
+export function stripFirstOpcode(opcodes, types) {
+  for (var i=0, length=opcodes.length; i<length; i++) {
+    if (types.indexOf(opcodes[i][0]) > -1) {
+      opcodes.splice(i, 1);
+      break;
+    }
+  }
+}
+
+export function stripLastOpcode(opcodes, types) {
+  for (var i=opcodes.length-1; i>=0; i--) {
+    if (types.indexOf(opcodes[i][0]) > -1) {
+      opcodes.splice(i, 1);
+      break;
+    }
+  }
+}
+
+export function replaceFirstOpcode(opcodes, oldType, newType) {
+  for (var i=0, length=opcodes.length; i<length; i++) {
+    if (oldType === opcodes[i][0]) {
+      opcodes[i][0] = newType;
+      break;
+    }
+  }
+}
+
+export function replaceLastOpcode(opcodes, oldType, newType) {
+  for (var i=opcodes.length-1; i>=0; i--) {
+    if (oldType === opcodes[i][0]) {
+      opcodes[i][0] = newType;
+      break;
+    }
+  }
+}

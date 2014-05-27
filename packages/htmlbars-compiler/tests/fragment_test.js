@@ -2,12 +2,12 @@ import { FragmentOpcodeCompiler } from "htmlbars-compiler/compiler/fragment_opco
 import { HydrationOpcodeCompiler } from "htmlbars-compiler/compiler/hydration_opcode";
 import { FragmentCompiler } from "htmlbars-compiler/compiler/fragment";
 import { HydrationCompiler } from "htmlbars-compiler/compiler/hydration";
-import { domHelpers } from "htmlbars-runtime/dom_helpers";
+import { DOMHelper } from "htmlbars-runtime/dom-helper";
 import { Morph } from "morph";
 import { preprocess } from "htmlbars-compiler/parser";
 import { equalHTML } from "test/support/assertions";
 
-var dom = domHelpers();
+var dom = new DOMHelper(document);
 
 function fragmentFor(ast) {
   /* jshint evil: true */
@@ -17,9 +17,9 @@ function fragmentFor(ast) {
   var opcodes = fragmentOpcodeCompiler.compile(ast);
   var program = fragmentCompiler.compile(opcodes);
 
-  var fn = new Function('return ' + program)();
+  var fn = new Function("dom0", 'return ' + program)(dom);
 
-  return fn( dom );
+  return fn();
 }
 
 function hydratorFor(ast) {
@@ -28,7 +28,7 @@ function hydratorFor(ast) {
   var opcodes = hydrate.compile(ast);
   var hydrate2 = new HydrationCompiler();
   var program = hydrate2.compile(opcodes, []);
-  return new Function("Morph", "fragment", "context", "hooks", "env", program);
+  return new Function("Morph", "fragment", "context", "hooks", "env", "dom0", program);
 }
 
 module('fragment');
@@ -68,7 +68,7 @@ test('hydrates a fragment with morph mustaches', function () {
     }
   };
 
-  hydrate(Morph, fragment, context, hooks, helpers);
+  hydrate(Morph, fragment, context, hooks, helpers, dom);
 
   equal(contentResolves.length, 2);
 
@@ -124,7 +124,7 @@ test('test auto insertion of text nodes for needed edges a fragment with morph m
     }
   };
 
-  hydrate(FakeMorph, fragment, context, hooks, helpers);
+  hydrate(FakeMorph, fragment, context, hooks, helpers, dom);
 
   equal(morphs.length, 3);
 

@@ -11,8 +11,31 @@ var states = {
   "beforeAttributeName": "in-tag"
 };
 
-var voidTagNames = "area base br col command embed hr img input keygen link meta param source track wbr";
+var voidTagNames = "area base br col command embed hr img input keygen link meta param source track wbr circle rect stop";
 var voidMap = {};
+
+var svgNamespace = "http://www.w3.org/2000/svg",
+    // http://www.w3.org/html/wg/drafts/html/master/syntax.html#html-integration-point
+    svgHTMLIntegrationPoints = ['foreignObject', 'desc', 'title'];
+
+function applyNamespace(tag, element, currentElement){
+  if (tag.tagName === 'svg') {
+    element.namespace = svgNamespace;
+  } else if (
+    // Is this.currentElement() always an element?
+    currentElement.type === 'element' &&
+    currentElement.namespace &&
+    !currentElement.isHTMLIntegrationPoint
+  ) {
+    element.namespace = currentElement.namespace;
+  }
+}
+
+function applyHTMLIntegrationPoint(tag, element){
+  if (svgHTMLIntegrationPoints.indexOf(tag.tagName) !== -1) {
+    element.isHTMLIntegrationPoint = true;
+  }
+}
 
 voidTagNames.split(" ").forEach(function(tagName) {
   voidMap[tagName] = true;
@@ -30,6 +53,9 @@ var tokenHandlers = {
 
   StartTag: function(tag) {
     var element = new ElementNode(tag.tagName, tag.attributes, tag.helpers || [], []);
+    applyNamespace(tag, element, this.currentElement());
+    applyHTMLIntegrationPoint(tag, element);
+
     this.elementStack.push(element);
     if (voidMap.hasOwnProperty(tag.tagName)) {
       tokenHandlers.EndTag.call(this, tag);
