@@ -233,6 +233,22 @@ test("The compiler can handle unescaped HTML", function() {
   compilesTo('<div>{{{title}}}</div>', '<div><strong>hello</strong></div>', { title: '<strong>hello</strong>' });
 });
 
+test("The compiler can handle top-level unescaped HTML", function() {
+  compilesTo('{{{html}}}', '<strong>hello</strong>', { html: '<strong>hello</strong>' });
+});
+
+test("The compiler can handle top-level unescaped SVG", function() {
+  var template = compile('{{{html}}}', {}, new DOMHelper(document, svgNamespace)),
+      fragment = template({ html: '<path stroke="black" d="M 0 0 L 100 100"></path>'}, { hooks: hooks });
+
+  equal(
+    fragment.childNodes[1].tagName, 'path',
+    "path inside unescaped content is the correct tag" );
+  equal(
+    fragment.childNodes[1].namespaceURI, svgNamespace,
+    "path inside unescaped content is the correct namespace" );
+});
+
 test("The compiler can handle simple helpers", function() {
   registerHelper('testing', function(context, params, options) {
     return context[params[0]];

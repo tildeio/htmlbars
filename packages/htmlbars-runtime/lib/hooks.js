@@ -25,7 +25,7 @@ export function webComponent(morph, tagName, context, options, helpers) {
 }
 
 export function webComponentFallback(morph, tagName, context, options, helpers) {
-  var element = morph.parent().ownerDocument.createElement(tagName);
+  var element = options.dom.createElement(tagName);
   var hash = options.hash, hashTypes = options.hashTypes;
 
   for (var name in hash) {

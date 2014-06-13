@@ -1,3 +1,5 @@
+import { Morph } from "morph";
+
 /*
  * A class wrapping DOM functions to address compatibility issues and
  * namespace changes.
@@ -54,4 +56,25 @@ prototype.createTextNode = function(text){
 
 prototype.cloneNode = function(element){
   return element.cloneNode(true);
+};
+
+prototype.createMorph = function(parent, startIndex, endIndex){
+  var childNodes = parent.childNodes,
+      start = startIndex === -1 ? null : childNodes[startIndex],
+      end = endIndex === -1 ? null : childNodes[endIndex];
+  return new Morph(parent, start, end, this);
+};
+
+prototype.parseHTML = function(html, parent){
+  var element;
+  // nodeType 11 is a document fragment
+  if (parent.nodeType === 11) {
+    /* TODO require templates always have a contextual element
+       instead of element0 = frag */
+    element = this.createElement('div');
+  } else {
+    element = parent.cloneNode(false);
+  }
+  element.innerHTML = html;
+  return element.childNodes;
 };

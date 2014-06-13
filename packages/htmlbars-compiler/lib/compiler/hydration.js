@@ -114,7 +114,7 @@ prototype.nodeHelper = function(name, size) {
 prototype.morph = function(num, parentPath, startIndex, endIndex) {
   var parentIndex = parentPath.length === 0 ? 0 : parentPath[parentPath.length-1];
   var parent = this.getParent();
-  var morph = "Morph.create("+parent+","+
+  var morph = this.domHelper+".createMorph("+parent+","+
     (startIndex === null ? "-1" : startIndex)+","+
     (endIndex === null ? "-1" : endIndex)+")";
 
