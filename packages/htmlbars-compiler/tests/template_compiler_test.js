@@ -1,27 +1,11 @@
 import { TemplateCompiler } from "htmlbars-compiler/compiler/template";
-import { Morph } from "morph";
 import { preprocess } from "htmlbars-compiler/parser";
 import { equalHTML } from "test/support/assertions";
+import { DOMHelper } from "htmlbars-runtime/dom-helper";
 
 module("TemplateCompiler");
 
-var dom = {
-  createDocumentFragment: function () {
-    return document.createDocumentFragment();
-  },
-  createElement: function (name) {
-    return document.createElement(name);
-  },
-  appendText: function (node, string) {
-    node.appendChild(document.createTextNode(string));
-  },
-  createTextNode: function(string) {
-    return document.createTextNode(string);
-  },
-  cloneNode: function(element) {
-    return element.cloneNode(true);
-  }
-};
+var dom = new DOMHelper(document);
 
 var hooks = {
   content: function(morph, helperName, context, params, options, helpers) {
@@ -41,7 +25,7 @@ test("it works", function testFunction() {
   var ast = preprocess('<div>{{#if working}}Hello {{firstName}} {{lastName}}!{{/if}}</div>');
   var compiler = new TemplateCompiler();
   var program = compiler.compile(ast);
-  var template = new Function("dom", "Morph", "return " + program)(dom, Morph);
+  var template = new Function("dom", "return " + program)(dom);
   var frag = template(
     { working: true, firstName: 'Kris', lastName: 'Selden' },
     { hooks: hooks }

@@ -1,6 +1,7 @@
 import TemplateVisitor from "./template_visitor";
 import { processOpcodes } from "./utils";
 import { buildHashFromAttributes } from "../html-parser/helpers";
+import { stripFirstOpcode, stripLastOpcode } from "./helpers";
 
 function HydrationOpcodeCompiler() {
   this.opcodes = [];
@@ -31,9 +32,10 @@ HydrationOpcodeCompiler.prototype.startProgram = function() {
 
 HydrationOpcodeCompiler.prototype.endProgram = function(program) {
   distributeMorphs(this.morphs, this.opcodes);
+  // If there is only one element, then the parent opcodes can be removed
   if (program.statements.length === 1 && program.statements[0].type !== 'text') {
-    this.opcodes.shift();
-    this.opcodes.pop();
+    stripFirstOpcode(this.opcodes, ['shareParent', 'consumeParent']);
+    stripLastOpcode(this.opcodes, ['popParent']);
   }
 };
 
@@ -67,6 +69,10 @@ HydrationOpcodeCompiler.prototype.closeElement = function(element) {
   distributeMorphs(this.morphs, this.opcodes);
   this.opcode('popParent');
   this.currentDOMChildIndex = this.paths.pop();
+};
+
+HydrationOpcodeCompiler.prototype.selectDOMHelper = function(domHelper) {
+  this.opcode('selectDOMHelper', [domHelper]);
 };
 
 HydrationOpcodeCompiler.prototype.block = function(block, childIndex, childrenLength) {
