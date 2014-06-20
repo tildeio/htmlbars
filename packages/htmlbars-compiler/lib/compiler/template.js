@@ -82,14 +82,14 @@ TemplateCompiler.prototype.endProgram = function(program) {
   this.templates.push(template);
 };
 
-TemplateCompiler.prototype.openElement = function(element, i, l, c) {
-  this.fragmentOpcodeCompiler.openElement(element, i, l, c);
-  this.hydrationOpcodeCompiler.openElement(element, i, l, c);
+TemplateCompiler.prototype.openElement = function(element, i, l, isRoot, c) {
+  this.fragmentOpcodeCompiler.openElement(element, i, l, isRoot, c);
+  this.hydrationOpcodeCompiler.openElement(element, i, l, isRoot, c);
 };
 
-TemplateCompiler.prototype.closeElement = function(element, i, l) {
-  this.fragmentOpcodeCompiler.closeElement(element, i, l);
-  this.hydrationOpcodeCompiler.closeElement(element, i, l);
+TemplateCompiler.prototype.closeElement = function(element, i, l, isRoot) {
+  this.fragmentOpcodeCompiler.closeElement(element, i, l, isRoot);
+  this.hydrationOpcodeCompiler.closeElement(element, i, l, isRoot);
 };
 
 TemplateCompiler.prototype.openContextualElement = function(contextualElement) {
@@ -120,9 +120,9 @@ TemplateCompiler.prototype.block = function(block, i, l) {
   this.hydrationOpcodeCompiler.block(block, i, l);
 };
 
-TemplateCompiler.prototype.text = function(string, i, l) {
-  this.fragmentOpcodeCompiler.text(string, i, l);
-  this.hydrationOpcodeCompiler.text(string, i, l);
+TemplateCompiler.prototype.text = function(string, i, l, isRoot) {
+  this.fragmentOpcodeCompiler.text(string, i, l, isRoot);
+  this.hydrationOpcodeCompiler.text(string, i, l, isRoot);
 };
 
 TemplateCompiler.prototype.mustache = function (mustache, i, l) {

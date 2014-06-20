@@ -18,8 +18,8 @@ FragmentOpcodeCompiler.prototype.opcode = function(type, params) {
   this.opcodes.push([type, params]);
 };
 
-FragmentOpcodeCompiler.prototype.text = function(text) {
-  this.opcode('text', [text.chars]);
+FragmentOpcodeCompiler.prototype.text = function(text, i, l, isRoot) {
+  this.opcode('text', [text.chars, isRoot]);
 };
 
 FragmentOpcodeCompiler.prototype.openContextualElement = function(domHelper) {
@@ -30,16 +30,14 @@ FragmentOpcodeCompiler.prototype.selectDOMHelper = function(domHelper) {
   this.opcode('selectDOMHelper', [domHelper]);
 };
 
-FragmentOpcodeCompiler.prototype.openElement = function(element) {
-  this.opcode('openElement', [element.tag]);
+FragmentOpcodeCompiler.prototype.openElement = function(element, i, l, isRoot) {
+  this.opcode('openElement', [element.tag, isRoot]);
 
-  element.attributes.forEach(function(attribute) {
-    this.attribute(attribute);
-  }, this);
+  element.attributes.forEach(this.attribute, this);
 };
 
-FragmentOpcodeCompiler.prototype.closeElement = function(element) {
-  this.opcode('closeElement', [element.tag]);
+FragmentOpcodeCompiler.prototype.closeElement = function(element, i, l, isRoot) {
+  this.opcode('closeElement', [element.tag, isRoot]);
 };
 
 FragmentOpcodeCompiler.prototype.startProgram = function(program) {
@@ -54,16 +52,7 @@ FragmentOpcodeCompiler.prototype.endProgram = function(program) {
 
   if (statements.length === 0) {
     this.opcode('empty');
-  } else if (statements.length === 1) {
-    var statement = statements[0];
-    if (statement.type === 'text') {
-      this.opcodes[0][0] = 'rootText';
-    } else if (statement.type === 'element') {
-      var opcodes = this.opcodes;
-      opcodes[0][0] = 'openRootElement';
-      opcodes[opcodes.length-1][0] = 'closeRootElement';
-    }
-  } else {
+  } else if (statements.length > 1) {
     this.opcode('endFragment');
   }
 };

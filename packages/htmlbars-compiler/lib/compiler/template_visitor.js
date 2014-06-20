@@ -76,14 +76,20 @@ TemplateVisitor.prototype.program = function(program) {
 
   programFrame.parentNode = program;
   programFrame.childCount = program.statements.length;
-  programFrame.actions.push(['endProgram', [program]]);
+  programFrame.actions.push([
+    'endProgram',
+    [program]
+  ]);
 
   for (var i = program.statements.length - 1; i >= 0; i--) {
     programFrame.childIndex = i;
     this.visit(program.statements[i]);
   }
 
-  programFrame.actions.push(['startProgram', [program, programFrame.childTemplateCount]]);
+  programFrame.actions.push([
+    'startProgram',
+    [program, programFrame.childTemplateCount]
+  ]);
   this.popFrame();
 
   // Push the completed template into the global actions list
@@ -98,7 +104,11 @@ TemplateVisitor.prototype.element = function(element) {
   elementFrame.parentNode = element;
   elementFrame.childCount = element.children.length;
   elementFrame.mustacheCount += element.helpers.length;
-  elementFrame.actions.push(['closeElement', [element, parentFrame.childIndex, parentFrame.childCount]]);
+  var isRoot = parentFrame.parentNode.type === 'program' && parentFrame.childCount === 1,
+      opcodeArguments = [
+        element, parentFrame.childIndex, parentFrame.childCount, isRoot ];
+
+  elementFrame.actions.push(['closeElement', opcodeArguments]);
 
   for (var i = element.attributes.length - 1; i >= 0; i--) {
     this.visit(element.attributes[i]);
@@ -109,7 +119,9 @@ TemplateVisitor.prototype.element = function(element) {
     this.visit(element.children[i]);
   }
 
-  elementFrame.actions.push(['openElement', [element, parentFrame.childIndex, parentFrame.childCount, elementFrame.mustacheCount]]);
+  opcodeArguments = opcodeArguments.concat(elementFrame.mustacheCount);
+  elementFrame.actions.push([
+    'openElement', opcodeArguments ]);
   this.popFrame();
 
   // Propagate the element's frame state to the parent frame
@@ -143,8 +155,11 @@ TemplateVisitor.prototype.block = function(node) {
 TemplateVisitor.prototype.component = TemplateVisitor.prototype.block;
 
 TemplateVisitor.prototype.text = function(text) {
-  var frame = this.getCurrentFrame();
-  frame.actions.push(['text', [text, frame.childIndex, frame.childCount]]);
+  var frame = this.getCurrentFrame(),
+      isRoot = frame.parentNode.type === 'program' && frame.childCount === 1,
+      opcodeArguments = [text, frame.childIndex, frame.childCount, isRoot];
+
+  frame.actions.push(['text', opcodeArguments]);
 };
 
 TemplateVisitor.prototype.mustache = function(mustache) {
