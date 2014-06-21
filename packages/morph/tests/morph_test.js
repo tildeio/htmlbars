@@ -1,6 +1,7 @@
 import { Morph } from "morph";
 import { equalHTML } from "test/support/assertions";
 import SafeString from 'handlebars/safe-string';
+import { DOMHelper } from 'htmlbars-runtime/dom-helper';
 
 function morphTests(factory) {
   test('updateNode '+factory.name, function () {
@@ -369,6 +370,8 @@ var contents = [
   }
 ];
 
+var domHelper = new DOMHelper(null, document);
+
 function iterateCombinations(parents, starts, ends, contents, callback) {
   function buildFactory(parentFactory, startFactory, endFactory, contentFactory) {
     return {
@@ -389,7 +392,7 @@ function iterateCombinations(parents, starts, ends, contents, callback) {
 
         return {
           fragment: fragment,
-          morph: Morph.create(parent, startIndex, endIndex),
+          morph: domHelper.createMorph(parent, startIndex, endIndex),
           startHTML: parentFactory.startHTML + startFactory.HTML,
           contentHTML: contentFactory.HTML,
           endHTML: endFactory.HTML + parentFactory.endHTML

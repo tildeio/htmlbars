@@ -54,14 +54,17 @@ TemplateCompiler.prototype.endProgram = function(program) {
 
   var template =
     '(function (){\n' +
+    'var dom0;\n' +
       childTemplateVars +
       fragmentProgram +
-    'var cachedFragment = null;\n' +
+    'var cachedFragment;\n' +
     'return function template(context, env) {\n' +
-    '  if (cachedFragment === null) {\n' +
-    '    cachedFragment = build(dom);\n' +
+    '  var envDom = env.dom;\n' +
+    '  if (dom0 === undefined || (envDom && dom0 !== envDom)) {\n' +
+    '    dom0 = envDom;\n' +
+    '    cachedFragment = build();\n' +
     '  }\n' +
-    '  var fragment = dom.cloneNode(cachedFragment);\n' +
+    '  var fragment = dom0.cloneNode(cachedFragment, true);\n' +
     '  var hooks = env.hooks;\n' +
        hydrationProgram +
     '  return fragment;\n' +
