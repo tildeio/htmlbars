@@ -8,7 +8,6 @@ function HydrationCompiler() {
   this.mustaches = [];
   this.parents = ['fragment'];
   this.parentCount = 0;
-  this.childCount = 0;
   this.domHelper = 'dom0';
   this.declarations = [];
 }
