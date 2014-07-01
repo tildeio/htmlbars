@@ -31,10 +31,6 @@ HydrationOpcodeCompiler.prototype.startProgram = function() {
 
 HydrationOpcodeCompiler.prototype.endProgram = function(program) {
   distributeMorphs(this.morphs, this.opcodes);
-  if (program.statements.length === 1 && program.statements[0].type !== 'text') {
-    this.opcodes.shift();
-    this.opcodes.pop();
-  }
 };
 
 HydrationOpcodeCompiler.prototype.text = function(string) {
@@ -45,31 +41,30 @@ HydrationOpcodeCompiler.prototype.selectDOMHelper = function(domHelper) {
   this.opcode('selectDOMHelper', domHelper);
 };
 
-HydrationOpcodeCompiler.prototype.openElement = function(element, pos, len, mustacheCount) {
+HydrationOpcodeCompiler.prototype.openElement = function(element, pos, len, isRoot, mustacheCount) {
   distributeMorphs(this.morphs, this.opcodes);
   ++this.currentDOMChildIndex;
 
-  if (mustacheCount > 1) {
-    this.opcode('shareParent', this.currentDOMChildIndex);
-  } else {
-    this.opcode('consumeParent', this.currentDOMChildIndex);
+  if (!isRoot) {
+    if (mustacheCount > 1) {
+      this.opcode('shareParent', this.currentDOMChildIndex);
+    } else {
+      this.opcode('consumeParent', this.currentDOMChildIndex);
+    }
   }
 
   this.paths.push(this.currentDOMChildIndex);
   this.currentDOMChildIndex = -1;
 
-  element.attributes.forEach(function(attribute) {
-    this.attribute(attribute);
-  }, this);
-
-  element.helpers.forEach(function(helper) {
-    this.nodeHelper(helper);
-  }, this);
+  element.attributes.forEach(this.attribute, this);
+  element.helpers.forEach(this.nodeHelper, this);
 };
 
-HydrationOpcodeCompiler.prototype.closeElement = function(element) {
+HydrationOpcodeCompiler.prototype.closeElement = function(element, pos, len, isRoot) {
   distributeMorphs(this.morphs, this.opcodes);
-  this.opcode('popParent');
+  if (!isRoot) {
+    this.opcode('popParent');
+  }
   this.currentDOMChildIndex = this.paths.pop();
 };
 
