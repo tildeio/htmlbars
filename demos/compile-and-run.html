@@ -17,7 +17,7 @@
     <script src="../dist/vendor/handlebars.amd.js"></script>
     <script src="../dist/morph.amd.js"></script>
     <script src="../dist/htmlbars-compiler.amd.js"></script>
-    <script src="../dist/htmlbars-runtime.amd.js"></script>
+    <script src="../dist/htmlbars-unbound.amd.js"></script>
     <script>
       var button   = document.getElementById('run-template'),
           dataarea = document.getElementById('data'),
@@ -28,7 +28,7 @@
           compile     = compiler.compile,
           compileSpec = compiler.compileSpec,
           DOMHelper   = requireModule('morph').DOMHelper,
-          hooks       = requireModule('htmlbars-runtime').hooks;
+          hooks       = requireModule('htmlbars-unbound').hooks;
 
       button.addEventListener('click', function(){
         var source = textarea.value,
