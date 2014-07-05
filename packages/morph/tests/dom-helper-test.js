@@ -104,7 +104,7 @@ test('#cloneNode deep', function(){
   equalHTML(node, '<div><span></span></div>');
 });
 
-test('#cloneNode deep with blank text', function(){
+test('#cloneNode deep with blank text at the start', function(){
   var fragment = document.createDocumentFragment();
 
   fragment.appendChild( document.createTextNode('') );
@@ -112,9 +112,46 @@ test('#cloneNode deep with blank text', function(){
 
   var node = dom.cloneNode(fragment, true);
 
-  equal(node.nodeType, 11);
+  equal(node.nodeType, Node.DOCUMENT_FRAGMENT_NODE);
   equalHTML(node, '<span></span>');
   // IE's native cloneNode drops blank string text
   // nodes. Assert that DOMHelper does not do this.
   equal(node.childNodes.length, 2);
+  equal(node.childNodes[0].nodeType, Node.TEXT_NODE);
+  equal(node.childNodes[1].nodeType, Node.ELEMENT_NODE);
+});
+
+test('#cloneNode deep with blank text at the end', function(){
+  var fragment = document.createDocumentFragment();
+
+  fragment.appendChild( document.createElement('span') );
+  fragment.appendChild( document.createTextNode('') );
+
+  var node = dom.cloneNode(fragment, true);
+
+  equal(node.nodeType, Node.DOCUMENT_FRAGMENT_NODE);
+  equalHTML(node, '<span></span>');
+  // IE's native cloneNode drops blank string text
+  // nodes. Assert that DOMHelper does not do this.
+  equal(node.childNodes.length, 2);
+  equal(node.childNodes[0].nodeType, Node.ELEMENT_NODE);
+  equal(node.childNodes[1].nodeType, Node.TEXT_NODE);
+});
+
+test('#cloneNode deep with blank text at leaf', function(){
+  var fragment = document.createDocumentFragment(),
+      span = document.createElement('span');
+
+  span.appendChild( document.createTextNode('') );
+  fragment.appendChild( span );
+
+  var node = dom.cloneNode(fragment, true);
+
+  equal(node.nodeType, Node.DOCUMENT_FRAGMENT_NODE);
+  equalHTML(node, '<span></span>');
+  // IE's native cloneNode drops blank string text
+  // nodes. Assert that DOMHelper does not do this.
+  equal(node.childNodes.length, 1);
+  equal(node.childNodes[0].nodeType, Node.ELEMENT_NODE);
+  equal(node.childNodes[0].childNodes[0].nodeType, Node.TEXT_NODE);
 });

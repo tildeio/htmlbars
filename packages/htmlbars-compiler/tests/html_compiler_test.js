@@ -101,9 +101,9 @@ test("Simple elements can have attributes", function() {
 });
 
 test("Simple elements can have arbitrary attributes", function() {
-  var template = compile("<div data-some-data='foo' data-isCamelCase='bar'>content</div>");
+  var template = compile("<div data-some-data='foo'>content</div>");
   var fragment = template({}, env);
-  equalTokens(fragment, '<div data-some-data="foo" data-iscamelcase="bar">content</div>');
+  equalTokens(fragment, '<div data-some-data="foo">content</div>');
 });
 
 function shouldBeVoid(tagName) {

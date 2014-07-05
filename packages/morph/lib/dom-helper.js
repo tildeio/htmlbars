@@ -2,6 +2,73 @@ import Morph from "morph/morph";
 
 var xhtmlNamespace = "http://www.w3.org/1999/xhtml";
 
+var deletesBlankTextNodes = (function(){
+  var element = document.createElement('div');
+  element.appendChild( document.createTextNode('') );
+  var clonedElement = element.cloneNode(true);
+  return clonedElement.childNodes.length === 0;
+})();
+
+var NodeWalker = function(root, nodeTypes){
+  this.root = root;
+  this.currentNode = root;
+  this.nodeTypes = nodeTypes;
+};
+
+NodeWalker.prototype.nextNode = function(){
+  if (!this.currentNode) {
+    return this.currentNode;
+  }
+  do {
+    if (this.currentNode.firstChild) {
+      this.currentNode = this.currentNode.firstChild;
+    } else if (this.currentNode !== this.root && this.currentNode.nextSibling) {
+      this.currentNode = this.currentNode.nextSibling;
+    } else {
+      while (this.currentNode !== this.root) {
+        this.currentNode = this.currentNode.parentNode;
+      }
+    }
+  } while (
+    this.currentNode &&
+    this.currentNode !== this.root &&
+    this.nodeTypes.indexOf(this.currentNode.nodeType) === -1
+  );
+
+  if (this.currentNode === this.root) {
+    this.currentNode = null;
+  }
+
+  return this.currentNode;
+};
+
+var emptyString = '',
+    childBearingNodeTypes = [Node.ELEMENT_NODE, Node.DOCUMENT_FRAGMENT_NODE];
+
+function repairTextNodes(original, clone){
+  var originalWalker = new NodeWalker(original, childBearingNodeTypes),
+      cloneWalker = new NodeWalker(clone, childBearingNodeTypes),
+      currentNode = originalWalker.currentNode,
+      currentClone = cloneWalker.currentNode;
+
+  while (currentNode) {
+    for (var i=0; i<currentNode.childNodes.length; i++) {
+      var childNode = currentNode.childNodes[i];
+      if (childNode.nodeType === Node.TEXT_NODE && childNode.textContent === emptyString) {
+        var textNode = document.createTextNode('');
+        if (currentClone.childNodes[i]) {
+          currentClone.insertBefore(textNode, currentClone.childNodes[i]);
+        } else {
+          currentClone.appendChild(textNode);
+        }
+      }
+    }
+
+    currentNode = originalWalker.nextNode();
+    currentClone = cloneWalker.nextNode();
+  }
+}
+
 /*
  * A class wrapping DOM functions to address environment compatibility,
  * namespaces, contextual elements for morph un-escaped content
@@ -77,7 +144,11 @@ prototype.createTextNode = function(text){
 };
 
 prototype.cloneNode = function(element, deep){
-  return element.cloneNode(!!deep);
+  var clone = element.cloneNode(!!deep);
+  if (!!deep && deletesBlankTextNodes) {
+    repairTextNodes(element, clone);
+  }
+  return clone;
 };
 
 prototype.createMorph = function(parent, startIndex, endIndex, contextualElement){
