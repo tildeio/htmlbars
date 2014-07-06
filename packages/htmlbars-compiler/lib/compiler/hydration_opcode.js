@@ -35,7 +35,10 @@ HydrationOpcodeCompiler.prototype.endProgram = function(program) {
   distributeMorphs(this.morphs, this.opcodes);
 };
 
-HydrationOpcodeCompiler.prototype.text = function(string) {
+HydrationOpcodeCompiler.prototype.text = function(string, pos, len) {
+  if (string.chars === '') {
+    this.opcode('ensureBlankTextNode', pos, len);
+  }
   ++this.currentDOMChildIndex;
 };
 
@@ -44,7 +47,7 @@ HydrationOpcodeCompiler.prototype.openElement = function(element, pos, len, isSi
   ++this.currentDOMChildIndex;
 
   this.element = this.currentDOMChildIndex;
-  
+
   if (!isSingleRoot) {
     this.opcode('consumeParent', this.currentDOMChildIndex);
 
