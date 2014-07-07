@@ -9,6 +9,13 @@ var deletesBlankTextNodes = (function(){
   return clonedElement.childNodes.length === 0;
 })();
 
+var ignoresCheckedAttribute = (function(){
+  var element = document.createElement('input');
+  element.setAttribute('checked', 'checked');
+  var clonedElement = element.cloneNode(false);
+  return !clonedElement.checked;
+})();
+
 /*
  * A class wrapping DOM functions to address environment compatibility,
  * namespaces, contextual elements for morph un-escaped content
@@ -91,6 +98,12 @@ prototype.ensureBlankTextNode = function(parent, before){
     } else {
       parent.appendChild(textNode);
     }
+  }
+};
+
+prototype.ensureChecked = function(element){
+  if (ignoresCheckedAttribute) {
+    element.setAttribute('checked', 'checked');
   }
 };
 

@@ -138,3 +138,19 @@ test('dom node has empty start text after cloning and ensuringBlankTextNode', fu
   equal(clonedDiv.childNodes.length, 2);
   equal(clonedDiv.childNodes[0].nodeType, Node.TEXT_NODE);
 });
+
+test('dom node checked after cloning and ensuringChecked', function(){
+  var input = document.createElement('input');
+
+  input.setAttribute('checked', 'checked');
+  ok(input.checked, 'input is checked');
+
+  var clone = dom.cloneNode(input, false);
+
+  // IE's native cloneNode copies checked attributes but
+  // not the checked property of the DOM node.
+  dom.ensureChecked(clone);
+
+  equalHTML(clone, '<input checked="checked">');
+  ok(clone.checked, 'clone is checked');
+});

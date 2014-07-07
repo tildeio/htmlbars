@@ -106,6 +106,13 @@ test("Simple elements can have arbitrary attributes", function() {
   equalTokens(fragment, '<div data-some-data="foo">content</div>');
 });
 
+test("checked attribute and checked property are present after clone and hydrate", function() {
+  var template = compile("<input checked=\"checked\">");
+  var fragment = template({}, env);
+  ok(fragment.checked, 'input is checked');
+  equalTokens(fragment, "<input checked='checked'>");
+});
+
 function shouldBeVoid(tagName) {
   var html = "<" + tagName + " data-foo='bar'><p>hello</p>";
   var template = compile(html);

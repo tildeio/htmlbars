@@ -107,6 +107,10 @@ HydrationOpcodeCompiler.prototype.opcode = function(type) {
 };
 
 HydrationOpcodeCompiler.prototype.attribute = function(attr) {
+  if (attr.name === 'checked') {
+    this.opcode('ensureChecked', []);
+  }
+
   if (attr.value.type === 'text') return;
 
   // We treat attribute like a attribute helper evaluated by the element hook.

@@ -142,6 +142,11 @@ prototype.ensureBlankTextNode = function(pos, len) {
     ');');
 };
 
+prototype.ensureChecked = function(element) {
+  var parent = this.getParent();
+  this.fragmentProcessing.push('dom.ensureChecked('+parent+');');
+};
+
 prototype.pushMustacheInContent = function(name, args, pairs, morphNum) {
   this.source.push(this.indent+'  hooks.content(morph' + morphNum + ', ' + name + ', context, ' + args + ', ' + hash(pairs) + ', env);\n');
 };
