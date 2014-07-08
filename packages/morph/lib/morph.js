@@ -14,7 +14,7 @@ function Morph(parent, start, end, domHelper, contextualElement) {
   this.start = start;
   this.end = end;
   this.domHelper = domHelper;
-  this.contextualElement = contextualElement || parent;
+  this.contextualElement = contextualElement;
   this.text = null;
   this.owner = null;
   this.morphs = null;

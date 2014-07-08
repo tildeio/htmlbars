@@ -81,18 +81,18 @@ prototype.cloneNode = function(element, deep){
 };
 
 prototype.createMorph = function(parent, startIndex, endIndex, contextualElement){
+  if (contextualElement === undefined) {
+    contextualElement = (parent.nodeType === 11) ? this.document.body : parent;
+  }
   return Morph.create(parent, startIndex, endIndex, this, contextualElement);
 };
 
 prototype.parseHTML = function(html, contextualElement){
-  var element;
-
-  if (!contextualElement || contextualElement.nodeType === 11) {
-    element = this.document.createElement('div');
-  } else {
-    element = this.cloneNode(contextualElement, false);
+  if (contextualElement === undefined) {
+    contextualElement = this.document.body;
   }
 
+  var element = this.cloneNode(contextualElement, false);
   element.innerHTML = html;
   return element.childNodes;
 };
