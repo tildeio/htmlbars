@@ -35,6 +35,15 @@ export function ElementNode(tag, attributes, helpers, children) {
   this.children = children;
 }
 
+export function PartialNode(name) {
+  this.name = this.type = 'partial';
+  this.params = [name];
+  this.program = null;
+  this.inverse = null;
+  this.hash = undefined;
+  this.escaped = true;
+}
+
 export function AttrNode(name, value) {
   this.type = 'attr';
   this.name = name;

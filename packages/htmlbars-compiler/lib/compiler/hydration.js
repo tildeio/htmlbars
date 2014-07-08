@@ -74,7 +74,7 @@ prototype.helper = function(name, size, escaped, morphNum) {
 };
 
 prototype.envHash = function() {
-  return '{hooks: env.hooks, dom: '+this.domHelper+'}';
+  return '{hooks: env.hooks, partials: env.partials, dom: '+this.domHelper+'}';
 };
 
 prototype.component = function(tag, morphNum) {

@@ -129,3 +129,8 @@ TemplateCompiler.prototype.mustache = function (mustache, i, l) {
   this.fragmentOpcodeCompiler.mustache(mustache, i, l);
   this.hydrationOpcodeCompiler.mustache(mustache, i, l);
 };
+
+TemplateCompiler.prototype.partial = function(partial, i, l) {
+  this.fragmentOpcodeCompiler.partial(partial, i, l);
+  this.hydrationOpcodeCompiler.partial(partial, i, l);
+};
