@@ -149,6 +149,18 @@ HydrationOpcodeCompiler.prototype.mustache = function(mustache, childIndex, chil
   }
 };
 
+HydrationOpcodeCompiler.prototype.partial = function(partial, childIndex, childrenLength) {
+  var currentDOMChildIndex = this.currentDOMChildIndex,
+      start = currentDOMChildIndex,
+      end = (childIndex === childrenLength - 1 ? -1 : currentDOMChildIndex + 1),
+      morphNum = this.morphNum++;
+  this.morphs.push([morphNum, this.paths.slice(), start, end]);
+  this.opcode('program', null, null);
+  processParams(this, partial.params);
+  processHash(this, partial.hash);
+  this.opcode('helper', partial.name, partial.params.length, partial.escaped, morphNum);
+};
+
 HydrationOpcodeCompiler.prototype.sexpr = function(sexpr) {
   this.string('sexpr');
   this.opcode('program', null, null);

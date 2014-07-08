@@ -67,6 +67,10 @@ prototype.helper = function(name, size, escaped, morphNum) {
   this.pushMustacheInContent(string(name), prepared.args, prepared.options, morphNum);
 };
 
+prototype.envHash = function() {
+  return '{hooks: env.hooks, partials: env.partials, dom: '+this.domHelper+'}';
+};
+
 prototype.component = function(tag, morphNum) {
   var prepared = prepareHelper(this.stack, 0);
   this.pushWebComponent(string(tag), prepared.options, morphNum);

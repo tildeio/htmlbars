@@ -63,7 +63,11 @@ export function concat(params, options, env) {
   return value;
 }
 
-export function subexpr(helperName, context, params, options, env) {
+export function partial(context, params, options, env) {
+  return env.partials[params[0]](context, env);
+}
+
+export function subexpr(helperName, context, params, options) {
   var helper = this.lookupHelper(helperName, context, options);
   if (helper) {
     return helper(params, options, env);
@@ -75,7 +79,11 @@ export function subexpr(helperName, context, params, options, env) {
 export function lookupHelper(helperName, context, options) {
   if (helperName === 'attribute') {
     return this.attribute;
-  } else if (helperName === 'concat') {
+  }
+  else if (helperName === 'partial'){
+    return this.partial;
+  }
+  else if (helperName === 'concat') {
     return this.concat;
   }
 }
@@ -94,7 +102,8 @@ export function hydrationHooks(extensions) {
     concat: concat,
     subexpr: subexpr,
     lookupHelper: lookupHelper,
-    simple: simple
+    simple: simple,
+    partial: partial
   };
 
   return extensions ? merge(extensions, base) : base;

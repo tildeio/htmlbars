@@ -49,6 +49,8 @@ FragmentOpcodeCompiler.prototype.component = function () {};
 
 FragmentOpcodeCompiler.prototype.block = function () {};
 
+FragmentOpcodeCompiler.prototype.partial = function() {};
+
 FragmentOpcodeCompiler.prototype.attribute = function(attr) {
   if (attr.value.type === 'text') {
     this.opcode('setAttribute', [attr.name, attr.value.chars]);
