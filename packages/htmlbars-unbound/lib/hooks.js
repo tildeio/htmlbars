@@ -1,13 +1,37 @@
 import { merge } from "./utils";
 import SafeString from 'handlebars/safe-string';
 
-export function content(morph, helperName, context, params, options, env) {
-  var value, helper = this.lookupHelper(helperName, context, options);
+function resolvePaths(context, params, options) {
+  if (!context) { return; }
+
+  var hash = options.hash;
+  var types = options.types;
+  var hashTypes = options.hashTypes;
+
+  for (var i = 0; i < params.length; i++) {
+    if (types[i] === 'id') {
+      params[i] = simple(context, params[i]);
+    }
+  }
+
+  for (var key in hash) {
+    if (hashTypes[key] === 'id') {
+      hash[key] = simple(context, params[i]);
+    }
+  }
+}
+
+export function content(morph, path, context, params, options, env) {
+  var value, hooks = env.hooks;
+  var helper = hooks.lookupHelper(path, context, env);
+
   if (helper) {
+    resolvePaths(context, params, options);
     value = helper(params, options, env);
   } else {
-    value = this.simple(context, helperName, options);
+    value = hooks.simple(context, path, options);
   }
+
   if (!options.escaped) {
     value = new SafeString(value);
   }
@@ -15,7 +39,7 @@ export function content(morph, helperName, context, params, options, env) {
 }
 
 export function webComponent(morph, tagName, context, options, env) {
-  var value, helper = this.lookupHelper(tagName, context, options);
+  var value, helper = this.lookupHelper(tagName, context, env);
   if (helper) {
     value = helper(null, options, env);
   } else {
@@ -70,13 +94,18 @@ export function subexpr(helperName, context, params, options, env) {
   } else {
     return this.simple(context, helperName, options);
   }
+  element.appendChild(options.render(context, env));
+  return element;
 }
 
-export function lookupHelper(helperName, context, options) {
+
+export function lookupHelper(helperName, context, env) {
   if (helperName === 'attribute') {
     return this.attribute;
   } else if (helperName === 'concat') {
     return this.concat;
+  } else {
+    return env.helpers[helperName];
   }
 }
 

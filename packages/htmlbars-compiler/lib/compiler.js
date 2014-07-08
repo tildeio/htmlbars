@@ -21,7 +21,7 @@ import { TemplateCompiler } from "./compiler/template";
  *     //   1. `hooks` - Basic hooks for rendering a template
  *     //   2. `dom` - An instance of DOMHelper
  *     //
- *     import {hooks} from 'htmlbars-runtime';
+ *     import {hooks} from 'htmlbars-unbound';
  *     import {DOMHelper} from 'morph';
  *     var context = {name: 'whatever'},
  *         env = {hooks: hooks, dom: new DOMHelper()},

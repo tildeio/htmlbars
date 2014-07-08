@@ -1,6 +1,6 @@
 import { compile } from "htmlbars-compiler/compiler";
 import { tokenize } from "simple-html-tokenizer";
-import { hydrationHooks } from "htmlbars-runtime/hooks";
+import { hydrationHooks } from "htmlbars-unbound/hooks";
 import { DOMHelper } from "morph";
 
 function frag(element, string) {
@@ -227,8 +227,7 @@ test("The compiler can handle unescaped tr inside fragment table", function() {
 
 test("The compiler can handle simple helpers", function() {
   registerHelper('testing', function(params, options) {
-    var context = options.context;
-    return context[params[0]];
+    return params[0];
   });
 
   compilesTo('<div>{{testing title}}</div>', '<div>hello</div>', { title: 'hello' });
@@ -773,7 +772,8 @@ test("Node helpers can be used for attribute bindings", function() {
 
   registerHelper('testing', function(params, options) {
     var path = options.hash.href,
-        element = options.element;
+        element = options.element,
+        context = options.context;
 
     callback = function() {
       var value = options.context[path];
