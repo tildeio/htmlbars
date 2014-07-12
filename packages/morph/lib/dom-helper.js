@@ -1,6 +1,13 @@
 import Morph from "morph/morph";
 
-var xhtmlNamespace = "http://www.w3.org/1999/xhtml";
+var emptyString = '';
+
+var deletesBlankTextNodes = (function(){
+  var element = document.createElement('div');
+  element.appendChild( document.createTextNode('') );
+  var clonedElement = element.cloneNode(true);
+  return clonedElement.childNodes.length === 0;
+})();
 
 /*
  * A class wrapping DOM functions to address environment compatibility,
@@ -54,8 +61,20 @@ prototype.createTextNode = function(text){
   return this.document.createTextNode(text);
 };
 
+prototype.ensureBlankTextNode = function(parent, before){
+  if (deletesBlankTextNodes) {
+    var textNode = this.document.createTextNode(emptyString);
+    if (before) {
+      parent.insertBefore(textNode, before);
+    } else {
+      parent.appendChild(textNode);
+    }
+  }
+};
+
 prototype.cloneNode = function(element, deep){
-  return element.cloneNode(!!deep);
+  var clone = element.cloneNode(!!deep);
+  return clone;
 };
 
 prototype.createMorph = function(parent, start, end, contextualElement){

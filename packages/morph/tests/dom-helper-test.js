@@ -93,7 +93,7 @@ test('#createElement of path with svg contextual element', function(){
 });
 */
 
-// TODO: Safari, Phantom do not return childNodes for SVG
+// TODO: Safari, Phantom does not return childNodes for SVG
 /*
 test('#parseHTML of path with svg contextual element', function(){
   var svgElement = document.createElementNS(svgNamespace, 'svg'),
@@ -126,4 +126,39 @@ test('#cloneNode deep', function(){
   equal(node.tagName, 'DIV');
   equal(node.namespaceURI, xhtmlNamespace);
   equalHTML(node, '<div><span></span></div>');
+});
+
+test('dom node has empty text after cloning and denormalizing', function(){
+  var div = document.createElement('div');
+
+  div.appendChild( document.createTextNode('') );
+
+  var clonedDiv = dom.cloneNode(div, true);
+
+  equal(clonedDiv.nodeType, Node.ELEMENT_NODE);
+  equalHTML(clonedDiv, '<div></div>');
+  // IE's native cloneNode drops blank string text
+  // nodes. Assert denormalizeText brings back the blank
+  // text node.
+  dom.ensureBlankTextNode(clonedDiv);
+  equal(clonedDiv.childNodes.length, 1);
+  equal(clonedDiv.childNodes[0].nodeType, Node.TEXT_NODE);
+});
+
+test('dom node has empty start text after cloning and denormalizing', function(){
+  var div = document.createElement('div');
+
+  div.appendChild( document.createTextNode('') );
+  div.appendChild( document.createElement('span') );
+
+  var clonedDiv = dom.cloneNode(div, true);
+
+  equal(clonedDiv.nodeType, Node.ELEMENT_NODE);
+  equalHTML(clonedDiv, '<div><span></span></div>');
+  // IE's native cloneNode drops blank string text
+  // nodes. Assert denormalizeText brings back the blank
+  // text node.
+  dom.ensureBlankTextNode(clonedDiv, clonedDiv.childNodes[0]);
+  equal(clonedDiv.childNodes.length, 2);
+  equal(clonedDiv.childNodes[0].nodeType, Node.TEXT_NODE);
 });
