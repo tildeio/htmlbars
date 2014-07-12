@@ -35,7 +35,10 @@ HydrationOpcodeCompiler.prototype.endProgram = function(program) {
   distributeMorphs(this.morphs, this.opcodes);
 };
 
-HydrationOpcodeCompiler.prototype.text = function(string) {
+HydrationOpcodeCompiler.prototype.text = function(string, pos, len) {
+  if (string.chars === '') {
+    this.opcode('ensureBlankTextNode', pos, len);
+  }
   ++this.currentDOMChildIndex;
 };
 
@@ -104,6 +107,10 @@ HydrationOpcodeCompiler.prototype.opcode = function(type) {
 };
 
 HydrationOpcodeCompiler.prototype.attribute = function(attr) {
+  if (attr.name === 'checked') {
+    this.opcode('ensureChecked', []);
+  }
+
   if (attr.value.type === 'text') return;
 
   // We treat attribute like a attribute helper evaluated by the element hook.
