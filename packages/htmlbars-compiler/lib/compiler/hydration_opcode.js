@@ -164,9 +164,9 @@ HydrationOpcodeCompiler.prototype.mustache = function(mustache, childIndex, chil
     this.opcode('program', null, null);
     processParams(this, mustache.params);
     processHash(this, mustache.hash);
-    this.opcode('helper', mustache.id.string, mustache.params.length, mustache.escaped, morphNum);
+    this.opcode('helper', (mustache.id.string || mustache.id.idName), mustache.params.length, mustache.escaped, morphNum);
   } else {
-    this.opcode('ambiguous', mustache.id.string, mustache.escaped, morphNum);
+    this.opcode('ambiguous', (mustache.id.string || mustache.id.idName), mustache.escaped, morphNum);
   }
 };
 
@@ -175,7 +175,7 @@ HydrationOpcodeCompiler.prototype.sexpr = function(sexpr) {
   this.opcode('program', null, null);
   processParams(this, sexpr.params);
   processHash(this, sexpr.hash);
-  this.opcode('sexpr', sexpr.id.string, sexpr.params.length);
+  this.opcode('sexpr', (sexpr.id.string || sexpr.id.idName), sexpr.params.length);
 };
 
 HydrationOpcodeCompiler.prototype.string = function(str) {
@@ -187,9 +187,9 @@ HydrationOpcodeCompiler.prototype.mustacheInAttr = function(mustache) {
     this.opcode('program', null, null);
     processParams(this, mustache.params);
     processHash(this, mustache.hash);
-    this.opcode('helperAttr', mustache.id.string, mustache.params.length, mustache.escaped);
+    this.opcode('helperAttr', (mustache.id.string || mustache.id.idName), mustache.params.length, mustache.escaped);
   } else {
-    this.opcode('ambiguousAttr', mustache.id.string, mustache.escaped);
+    this.opcode('ambiguousAttr', (mustache.id.string || mustache.id.idName), mustache.escaped);
   }
 };
 
