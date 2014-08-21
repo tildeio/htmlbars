@@ -4,7 +4,7 @@ var emptyString = '';
 
 var deletesBlankTextNodes = (function(){
   var element = document.createElement('div');
-  element.appendChild( document.createTextNode('') );
+  element.appendChild( document.createTextNode(emptyString) );
   var clonedElement = element.cloneNode(true);
   return clonedElement.childNodes.length === 0;
 })();
@@ -145,16 +145,16 @@ prototype.createMorphAt = function(parent, startIndex, endIndex, contextualEleme
 };
 
 prototype.insertMorphBefore = function(element, referenceChild, contextualElement) {
-  var start = document.createTextNode('');
-  var end = document.createTextNode('');
+  var start = document.createTextNode(emptyString);
+  var end = document.createTextNode(emptyString);
   element.insertBefore(start, referenceChild);
   element.insertBefore(end, referenceChild);
   return this.createMorph(element, start, end, contextualElement);
 };
 
 prototype.appendMorph = function(element, contextualElement) {
-  var start = document.createTextNode('');
-  var end = document.createTextNode('');
+  var start = document.createTextNode(emptyString);
+  var end = document.createTextNode(emptyString);
   element.appendChild(start);
   element.appendChild(end);
   return this.createMorph(element, start, end, contextualElement);
