@@ -91,13 +91,18 @@ test('#insertMorphBefore', function(){
   equal(element.innerHTML, 'abc');
 });
 
-test('#parseHTML of tr with contextual table element', function(){
+test('#parseHTML of tr returns a tr inside a table context', function(){
   var tableElement = document.createElement('table'),
       nodes = dom.parseHTML('<tr><td>Yo</td></tr>', tableElement);
-  equal(nodes[0].tagName, 'TBODY');
-  equal(nodes[0].childNodes[0].tagName, 'TR');
+  equal(nodes[0].tagName, 'TR');
   equal(nodes[0].namespaceURI, xhtmlNamespace);
-  equal(nodes[0].childNodes[0].namespaceURI, xhtmlNamespace);
+});
+
+test('#parseHTML of col returns a col inside a table context', function(){
+  var tableElement = document.createElement('table'),
+      nodes = dom.parseHTML('<col></col>', tableElement);
+  equal(nodes[0].tagName, 'COL');
+  equal(nodes[0].namespaceURI, xhtmlNamespace);
 });
 
 // TODO: Basic svg support
