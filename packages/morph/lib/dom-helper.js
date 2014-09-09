@@ -37,6 +37,44 @@ function interiorNamespace(element){
   }
 }
 
+// The HTML spec allows for "omitted start tags". These tags are optional
+// when their intended child is the first thing in the parent tag. For
+// example, this is a tbody start tag:
+//
+// <table>
+//   <tbody>
+//     <tr>
+//
+// The tbody may be omitted, and the browser will accept and render:
+//
+// <table>
+//   <tr>
+//
+// However, the omitted start tag will still be added to the DOM. Here
+// we test the string and context to see if the browser is about to
+// perform this cleanup, but with a special allowance for disregarding
+// <script tags.
+//
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/syntax.html#optional-tags
+// describes which tags are omittable. The spec for tbody and colgroup
+// explains this behavior:
+//
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/tables.html#the-tbody-element
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/tables.html#the-colgroup-element
+//
+var omittedStartTagChildren = {
+  tr: 'tbody',
+  col: 'colgroup'
+};
+
+var omittedStartTagChildTest = new RegExp('<(?!script)(tr|col)');
+
+function detectOmittedStartTag(string, contextualElement){
+  var quirkyTag = omittedStartTagChildTest.exec(string);
+  return quirkyTag &&
+         contextualElement.tagName.toLowerCase() !== omittedStartTagChildren[quirkyTag];
+}
+
 /*
  * A class wrapping DOM functions to address environment compatibility,
  * namespaces, contextual elements for morph un-escaped content
@@ -172,7 +210,11 @@ prototype.parseHTML = function(html, contextualElement){
   if (isSVG(this.namespace)) {
     return element.firstChild.childNodes;
   } else {
-    return element.childNodes;
+    if (detectOmittedStartTag(html, contextualElement)) {
+      return element.firstChild.childNodes;
+    } else {
+      return element.childNodes;
+    }
   }
 };
 
