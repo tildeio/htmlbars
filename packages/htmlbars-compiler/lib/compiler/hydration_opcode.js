@@ -209,6 +209,10 @@ HydrationOpcodeCompiler.prototype.INTEGER = function(integer) {
   this.opcode('literal', integer.stringModeValue);
 };
 
+HydrationOpcodeCompiler.prototype.NUMBER = function(number) {
+  this.opcode('literal', number.stringModeValue);
+};
+
 function processParams(compiler, params) {
   forEach(params, function(param) {
     if (param.type === 'text') {

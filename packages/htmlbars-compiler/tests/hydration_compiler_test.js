@@ -96,13 +96,14 @@ test("back to back mustaches should have a text node inserted between them", fun
 });
 
 test("helper usage", function() {
-  var opcodes = opcodesFor("<div>{{foo 'bar'}}</div>");
+  var opcodes = opcodesFor("<div>{{foo 'bar' 42}}</div>");
   deepEqual(opcodes, [
     [ "morph", [ 0, [0], -1, -1 ] ],
     [ "program", [null, null] ],
     [ "stringLiteral", ['bar'] ],
+    [ "literal", [42] ],
     [ "stackLiteral", [0] ],
-    helper('foo', ['bar'], 0)
+    helper('foo', ['bar', 42], 0)
   ]);
 });
 
