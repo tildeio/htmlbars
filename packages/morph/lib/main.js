@@ -1,5 +1,5 @@
-import Morph from "./morph/morph";
-export var Morph;
+import Morph from "./morph";
+export { Morph };
 
-import DOMHelper from "./morph/dom-helper";
-export var DOMHelper;
+import DOMHelper from "./dom-helper";
+export { DOMHelper };

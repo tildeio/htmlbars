@@ -1,5 +1,5 @@
 /* global window:false */
-import Morph from "../morph/morph";
+import Morph from "./morph";
 import {
   buildHTMLDOM,
   svgNamespace,
