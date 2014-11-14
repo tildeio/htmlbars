@@ -1,4 +1,4 @@
-import {hooks} from "../htmlbars-runtime";
+import {hooks} from "htmlbars-runtime";
 
 QUnit.module("htmlbars-runtime");
 

@@ -1,5 +1,5 @@
-import { parse } from "./handlebars/compiler/base";
-import { Tokenizer } from "../simple-html-tokenizer";
+import { parse } from "../handlebars/compiler/base";
+import { Tokenizer } from "../simple-html-tokenizer/simple-html-tokenizer";
 import nodeHandlers from "./html-parser/node-handlers";
 import tokenHandlers from "./html-parser/token-handlers";
 

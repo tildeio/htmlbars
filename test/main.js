@@ -1,0 +1,11 @@
+import './htmlbars-test';
+import './combined_ast_node-test';
+import './fragment_test';
+import './html_compiler_test';
+import './hydration_compiler_test';
+import './template_compiler_test';
+import './template_visitor_test';
+import './main-test';
+import './htmlbars-util-test';
+import './dom-helper-test';
+import './morph-test';

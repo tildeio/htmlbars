@@ -1,3 +1,2 @@
-module hooks from 'htmlbars-runtime/hooks';
-
-export var hooks;
+import * as hooks from 'htmlbars-runtime/hooks';
+export { hooks };

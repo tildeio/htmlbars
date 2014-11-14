@@ -1,6 +1,6 @@
 {
   "framework": "qunit",
-  "test_page": "dist/test/index.html",
+  "test_page": "dist/tests/index.html",
   "before_tests": "node bin/build.js",
   "watch_files": [
     "packages/**/*.js",

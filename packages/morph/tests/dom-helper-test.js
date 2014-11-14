@@ -1,8 +1,8 @@
-import {DOMHelper} from "../morph";
+import {DOMHelper} from "morph";
 import {
   equalHTML,
   isCheckedInputHTML
-} from "../test/support/assertions";
+} from "./support/assertions";
 
 var xhtmlNamespace = "http://www.w3.org/1999/xhtml",
     svgNamespace   = "http://www.w3.org/2000/svg";

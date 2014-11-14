@@ -1,4 +1,4 @@
-import {compile} from "../htmlbars";
+import {compile} from "htmlbars";
 
 QUnit.module('htmlbars');
 

@@ -1,6 +1,6 @@
-import { equalHTML, equalInnerHTML } from "../test/support/assertions";
-import SafeString from '../htmlbars-util/safe-string';
-import DOMHelper from "../morph/dom-helper";
+import { equalHTML, equalInnerHTML } from "./support/assertions";
+import SafeString from "htmlbars-util/safe-string";
+import DOMHelper from "morph/dom-helper";
 
 var domHelper = new DOMHelper();
 

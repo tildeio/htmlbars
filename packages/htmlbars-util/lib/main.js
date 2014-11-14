@@ -1,4 +1,4 @@
-import SafeString from './htmlbars-util/safe-string';
+import SafeString from 'htmlbars-util/safe-string';
 
 export {
   SafeString
