@@ -9,10 +9,20 @@ export function buildHashFromAttributes(attributes) {
 
   for (var i = 0; i < attributes.length; i++) {
     var attr = attributes[i];
-    if (attr.value.type === 'mustache') {
-      pairs.push([attr.name, attr.value.sexpr]);
+    if (attr.value.type === 'sexpr') {
+      pairs.push([attr.name, attr.value]);
     } else if (attr.value.type === 'text') {
       pairs.push([attr.name, new StringNode(attr.value.chars)]);
+    } else {
+      pairs.push([attr.name, {
+        type: 'sexpr',
+        id: {
+          string: 'concat',
+          parts: ['concat']
+        },
+        params: attr.value,
+        hash: null
+      }]);
     }
   }
 
@@ -26,7 +36,9 @@ export function buildHashFromAttributes(attributes) {
 export function postprocessProgram(program) {
   var statements = program.statements;
 
-  if (statements.length === 0) return;
+  if (statements.length === 0) {
+    return;
+  }
 
   if (usesMorph(statements[0])) {
     statements.unshift(new TextNode(''));
@@ -41,7 +53,9 @@ export function postprocessProgram(program) {
   for (var i = 0; i < l; i++) {
     var statement = statements[i];
 
-    if (statement.type !== 'text') continue;
+    if (statement.type !== 'text') {
+      continue;
+    }
 
     if ((i > 0 && statements[i-1].strip && statements[i-1].strip.right) ||
       (i === 0 && program.strip.left)) {

@@ -101,7 +101,9 @@ TemplateVisitor.prototype.program = function(program) {
   }
 
   programFrame.actions.push(['startProgram', [
-    program, programFrame.childTemplateCount, programFrame.blankChildTextNodes.reverse() ]]);
+    program, programFrame.childTemplateCount,
+    programFrame.blankChildTextNodes.reverse()
+  ]]);
   this.popFrame();
 
   this.programDepth--;
@@ -172,7 +174,6 @@ TemplateVisitor.prototype.attr = function(attr) {
 
 TemplateVisitor.prototype.block = function(node) {
   var frame = this.getCurrentFrame();
-  var parentNode = frame.parentNode;
 
   frame.mustacheCount++;
   frame.actions.push([node.type, [node, frame.childIndex, frame.childCount]]);
@@ -196,6 +197,13 @@ TemplateVisitor.prototype.text = function(text) {
     frame.blankChildTextNodes.push(domIndexOf(frame.children, text));
   }
   frame.actions.push(['text', [text, frame.childIndex, frame.childCount, isSingleRoot]]);
+};
+
+TemplateVisitor.prototype.comment = function(text) {
+  var frame = this.getCurrentFrame();
+  var isSingleRoot = frame.parentNode.type === 'program' && frame.childCount === 1;
+
+  frame.actions.push(['comment', [text, frame.childIndex, frame.childCount, isSingleRoot]]);
 };
 
 TemplateVisitor.prototype.mustache = function(mustache) {

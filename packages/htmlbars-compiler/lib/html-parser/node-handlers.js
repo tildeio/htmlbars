@@ -1,4 +1,4 @@
-import { BlockNode, ProgramNode, TextNode, PartialNode, appendChild, usesMorph } from "../ast";
+import { BlockNode, ProgramNode, PartialNode, appendChild } from "../ast";
 import { postprocessProgram } from "../html-parser/helpers";
 import { Chars } from "../html-parser/tokens";
 import { forEach } from "../utils";
@@ -7,7 +7,7 @@ var nodeHandlers = {
 
   program: function(program) {
     var statements = [];
-    var node = new ProgramNode(statements, program.strip);
+    var node = new ProgramNode(statements, program.blockParams || null, program.strip);
     var i, l = program.statements.length;
 
     this.elementStack.push(node);
@@ -32,10 +32,15 @@ var nodeHandlers = {
   },
 
   block: function(block) {
+    if (this.tokenizer.state === 'comment') {
+      this.tokenizer.token.addChar('{{' + this.sourceForMustache(block) + '}}');
+      return;
+    }
+
     switchToHandlebars(this);
     this.acceptToken(block);
 
-    var mustache = block.mustache;
+    var sexpr = block.sexpr;
     var program = this.acceptNode(block.program);
     var inverse = block.inverse ? this.acceptNode(block.inverse) : null;
     var strip = block.strip;
@@ -45,7 +50,7 @@ var nodeHandlers = {
       inverse.strip.left = false;
     }
 
-    var node = new BlockNode(mustache, program, inverse, strip);
+    var node = new BlockNode(sexpr, program, inverse, strip);
     var parentProgram = this.currentElement();
     appendChild(parentProgram, node);
   },
@@ -57,11 +62,16 @@ var nodeHandlers = {
   },
 
   mustache: function(mustache) {
+    if (this.tokenizer.state === 'comment') {
+      this.tokenizer.token.addChar('{{' + this.sourceForMustache(mustache) + '}}');
+      return;
+    }
+
     switchToHandlebars(this);
     this.acceptToken(mustache);
   },
 
-  comment: function(comment) {
+  comment: function(/*comment*/) {
     return;
   },
 

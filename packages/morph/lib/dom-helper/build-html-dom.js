@@ -1,69 +1,106 @@
+/* global XMLSerializer:false */
 export var svgHTMLIntegrationPoints = {foreignObject: 1, desc: 1, title: 1};
 export var svgNamespace = 'http://www.w3.org/2000/svg';
 
+var doc = typeof document === 'undefined' ? false : document;
+
 // Safari does not like using innerHTML on SVG HTML integration
-// points.
-var needsIntegrationPointFix = document.createElementNS && (function() {
-  var testEl = document.createElementNS(svgNamespace, 'foreignObject');
+// points (desc/title/foreignObject).
+var needsIntegrationPointFix = doc && (function(document) {
+  if (document.createElementNS === undefined) {
+    return;
+  }
+  // In FF title will not accept innerHTML.
+  var testEl = document.createElementNS(svgNamespace, 'title');
   testEl.innerHTML = "<div></div>";
-  return testEl.childNodes.length === 0;
-})();
+  return testEl.childNodes.length === 0 || testEl.childNodes[0].nodeType !== 1;
+})(doc);
 
 // Internet Explorer prior to 9 does not allow setting innerHTML if the first element
 // is a "zero-scope" element. This problem can be worked around by making
 // the first node an invisible text node. We, like Modernizr, use &shy;
-var needsShy = (function() {
+var needsShy = doc && (function(document) {
   var testEl = document.createElement('div');
   testEl.innerHTML = "<div></div>";
   testEl.firstChild.innerHTML = "<script><\/script>";
   return testEl.firstChild.innerHTML === '';
-})();
+})(doc);
 
 // IE 8 (and likely earlier) likes to move whitespace preceeding
 // a script tag to appear after it. This means that we can
 // accidentally remove whitespace when updating a morph.
-var movesWhitespace = document && (function() {
+var movesWhitespace = doc && (function(document) {
   var testEl = document.createElement('div');
   testEl.innerHTML = "Test: <script type='text/x-placeholder'><\/script>Value";
   return testEl.childNodes[0].nodeValue === 'Test:' &&
           testEl.childNodes[2].nodeValue === ' Value';
-})();
+})(doc);
 
-// IE 9 and earlier don't allow us to set innerHTML on col, colgroup, frameset,
-// html, style, table, tbody, tfoot, thead, title, tr. Detect this and add
-// them to an initial list of corrected tags.
-//
-// Here we are only dealing with the ones which can have child nodes.
-//
-var tagNamesRequiringInnerHTMLFix, tableNeedsInnerHTMLFix;
-var tableInnerHTMLTestElement = document.createElement('table');
-try {
-  tableInnerHTMLTestElement.innerHTML = '<tbody></tbody>';
-} catch (e) {
-} finally {
-  tableNeedsInnerHTMLFix = (tableInnerHTMLTestElement.childNodes.length === 0);
-}
-if (tableNeedsInnerHTMLFix) {
-  tagNamesRequiringInnerHTMLFix = {
-    colgroup: ['table'],
-    table: [],
-    tbody: ['table'],
-    tfoot: ['table'],
-    thead: ['table'],
-    tr: ['table', 'tbody']
-  };
+// IE8 create a selected attribute where they should only
+// create a property
+var createsSelectedAttribute = doc && (function(document) {
+  var testEl = document.createElement('div');
+  testEl.innerHTML = "<select><option></option></select>";
+  return testEl.childNodes[0].childNodes[0].getAttribute('selected') === 'selected';
+})(doc);
+
+var detectAutoSelectedOption;
+if (createsSelectedAttribute) {
+  detectAutoSelectedOption = (function(){
+    var detectAutoSelectedOptionRegex = /<option[^>]*selected/;
+    return function detectAutoSelectedOption(select, option, html) { //jshint ignore:line
+      return select.selectedIndex === 0 &&
+             !detectAutoSelectedOptionRegex.test(html);
+    };
+  })();
 } else {
-  tagNamesRequiringInnerHTMLFix = {};
+  detectAutoSelectedOption = function detectAutoSelectedOption(select, option, html) { //jshint ignore:line
+    var selectedAttribute = option.getAttribute('selected');
+    return select.selectedIndex === 0 && (
+             selectedAttribute === null ||
+             ( selectedAttribute !== '' && selectedAttribute.toLowerCase() !== 'selected' )
+            );
+  };
 }
 
-// IE 8 doesn't allow setting innerHTML on a select tag. Detect this and
-// add it to the list of corrected tags.
-//
-var selectInnerHTMLTestElement = document.createElement('select');
-selectInnerHTMLTestElement.innerHTML = '<option></option>';
-if (selectInnerHTMLTestElement) {
-  tagNamesRequiringInnerHTMLFix.select = [];
-}
+var tagNamesRequiringInnerHTMLFix = doc && (function(document) {
+  var tagNamesRequiringInnerHTMLFix;
+  // IE 9 and earlier don't allow us to set innerHTML on col, colgroup, frameset,
+  // html, style, table, tbody, tfoot, thead, title, tr. Detect this and add
+  // them to an initial list of corrected tags.
+  //
+  // Here we are only dealing with the ones which can have child nodes.
+  //
+  var tableNeedsInnerHTMLFix;
+  var tableInnerHTMLTestElement = document.createElement('table');
+  try {
+    tableInnerHTMLTestElement.innerHTML = '<tbody></tbody>';
+  } catch (e) {
+  } finally {
+    tableNeedsInnerHTMLFix = (tableInnerHTMLTestElement.childNodes.length === 0);
+  }
+  if (tableNeedsInnerHTMLFix) {
+    tagNamesRequiringInnerHTMLFix = {
+      colgroup: ['table'],
+      table: [],
+      tbody: ['table'],
+      tfoot: ['table'],
+      thead: ['table'],
+      tr: ['table', 'tbody']
+    };
+  }
+
+  // IE 8 doesn't allow setting innerHTML on a select tag. Detect this and
+  // add it to the list of corrected tags.
+  //
+  var selectInnerHTMLTestElement = document.createElement('select');
+  selectInnerHTMLTestElement.innerHTML = '<option></option>';
+  if (!selectInnerHTMLTestElement.childNodes[0]) {
+    tagNamesRequiringInnerHTMLFix = tagNamesRequiringInnerHTMLFix || {};
+    tagNamesRequiringInnerHTMLFix.select = [];
+  }
+  return tagNamesRequiringInnerHTMLFix;
+})(doc);
 
 function scriptSafeInnerHTML(element, html) {
   // without a leading text node, IE will drop a leading script tag.
@@ -143,11 +180,9 @@ if (needsShy) {
   };
 }
 
-
-var buildHTMLDOM;
-// Really, this just means IE8 and IE9 get a slower buildHTMLDOM
-if (tagNamesRequiringInnerHTMLFix.length > 0 || movesWhitespace) {
-  buildHTMLDOM = function buildHTMLDOM(html, contextualElement, dom) {
+var buildIESafeDOM;
+if (tagNamesRequiringInnerHTMLFix || movesWhitespace) {
+  buildIESafeDOM = function buildIESafeDOM(html, contextualElement, dom) {
     // Make a list of the leading text on script nodes. Include
     // script tags without any whitespace for easier processing later.
     var spacesBefore = [];
@@ -175,7 +210,8 @@ if (tagNamesRequiringInnerHTMLFix.length > 0 || movesWhitespace) {
     // mutated as we add test nodes.
     var i, j, node, nodeScriptNodes;
     var scriptNodes = [];
-    for (i=0;node=nodes[i];i++) {
+    for (i=0;i<nodes.length;i++) {
+      node=nodes[i];
       if (node.nodeType !== 1) {
         continue;
       }
@@ -190,8 +226,9 @@ if (tagNamesRequiringInnerHTMLFix.length > 0 || movesWhitespace) {
     }
 
     // Walk the script tags and put back their leading text nodes.
-    var textNode, spaceBefore, spaceAfter;
-    for (i=0;scriptNode=scriptNodes[i];i++) {
+    var scriptNode, textNode, spaceBefore, spaceAfter;
+    for (i=0;i<scriptNodes.length;i++) {
+      scriptNode = scriptNodes[i];
       spaceBefore = spacesBefore[i];
       if (spaceBefore && spaceBefore.length > 0) {
         textNode = dom.document.createTextNode(spaceBefore);
@@ -207,16 +244,49 @@ if (tagNamesRequiringInnerHTMLFix.length > 0 || movesWhitespace) {
 
     return nodes;
   };
-} else if (needsIntegrationPointFix) {
+} else {
+  buildIESafeDOM = buildDOM;
+}
+
+// When parsing innerHTML, the browser may set up DOM with some things
+// not desired. For example, with a select element context and option
+// innerHTML the first option will be marked selected.
+//
+// This method cleans up some of that, resetting those values back to
+// their defaults.
+//
+function buildSafeDOM(html, contextualElement, dom) {
+  var childNodes = buildIESafeDOM(html, contextualElement, dom);
+
+  if (contextualElement.tagName === 'SELECT') {
+    // Walk child nodes
+    for (var i = 0; childNodes[i]; i++) {
+      // Find and process the first option child node
+      if (childNodes[i].tagName === 'OPTION') {
+        if (detectAutoSelectedOption(childNodes[i].parentNode, childNodes[i], html)) {
+          // If the first node is selected but does not have an attribute,
+          // presume it is not really selected.
+          childNodes[i].parentNode.selectedIndex = -1;
+        }
+        break;
+      }
+    }
+  }
+
+  return childNodes;
+}
+
+var buildHTMLDOM;
+if (needsIntegrationPointFix) {
   buildHTMLDOM = function buildHTMLDOM(html, contextualElement, dom){
     if (svgHTMLIntegrationPoints[contextualElement.tagName]) {
-      return buildDOM(html, document.createElement('div'), dom);
+      return buildSafeDOM(html, document.createElement('div'), dom);
     } else {
-      return buildDOM(html, contextualElement, dom);
+      return buildSafeDOM(html, contextualElement, dom);
     }
   };
 } else {
-  buildHTMLDOM = buildDOM;
+  buildHTMLDOM = buildSafeDOM;
 }
 
 export {buildHTMLDOM};

@@ -4,7 +4,7 @@ import { FragmentCompiler } from "../htmlbars-compiler/compiler/fragment";
 import { HydrationCompiler } from "../htmlbars-compiler/compiler/hydration";
 import { DOMHelper } from "../morph";
 import { preprocess } from "../htmlbars-compiler/parser";
-import { equalHTML } from "../test/support/assertions";
+import { equalHTML } from "../htmlbars-test-helpers";
 
 var xhtmlNamespace = "http://www.w3.org/1999/xhtml",
     svgNamespace = "http://www.w3.org/2000/svg";
@@ -79,12 +79,13 @@ test('hydrates a fragment with morph mustaches', function () {
   var env = {
     dom: new DOMHelper(),
     hooks: {
-      content: function(morph, path, context, params, options) {
+      content: function(morph, path, context, params, hash, options) {
         contentResolves.push({
           morph: morph,
           context: context,
           path: path,
           params: params,
+          hash: hash,
           options: options
         });
       }
@@ -96,21 +97,21 @@ test('hydrates a fragment with morph mustaches', function () {
   equal(contentResolves.length, 2);
 
   var foo = contentResolves[0];
+  equal(foo.morph.escaped, true);
   equal(foo.morph.parent(), fragment);
   equal(foo.context, context);
   equal(foo.path, 'foo');
   deepEqual(foo.params, ["foo",3,"blah"]);
-  deepEqual(foo.options.types, ["string","number","id"]);
-  deepEqual(foo.options.hash, {ack:"syn",bar:"baz"});
+  deepEqual(foo.hash, {ack:"syn",bar:"baz"});
+  deepEqual(foo.options.paramTypes, ["string","number","id"]);
   deepEqual(foo.options.hashTypes, {ack:"string",bar:"id"});
-  equal(foo.options.escaped, true);
 
   var baz = contentResolves[1];
+  equal(baz.morph.escaped, true);
   equal(baz.morph.parent(), fragment);
   equal(baz.context, context);
   equal(baz.path, 'baz');
   equal(baz.params.length, 0);
-  equal(baz.options.escaped, true);
 
   foo.morph.update('A');
   baz.morph.update('B');

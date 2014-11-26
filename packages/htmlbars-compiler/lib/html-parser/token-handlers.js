@@ -1,16 +1,13 @@
-import { ProgramNode, ComponentNode, ElementNode, TextNode, appendChild } from "../ast";
+import {
+  ProgramNode,
+  ComponentNode,
+  ElementNode,
+  TextNode,
+  CommentNode,
+  appendChild
+} from "../ast";
 import { postprocessProgram } from "./helpers";
 import { forEach } from "../utils";
-
-// This table maps from the state names in the tokenizer to a smaller
-// number of states that control how mustaches are handled
-var states = {
-  "beforeAttributeValue": "before-attr",
-  "attributeValueDoubleQuoted": "attr",
-  "attributeValueSingleQuoted": "attr",
-  "attributeValueUnquoted": "attr",
-  "beforeAttributeName": "in-tag"
-};
 
 // The HTML elements in this list are speced by
 // http://www.w3.org/TR/html-markup/syntax.html#syntax-elements,
@@ -49,6 +46,12 @@ function applyHTMLIntegrationPoint(tag, element){
 // Except for `mustache`, all tokens are only allowed outside of
 // a start or end tag.
 var tokenHandlers = {
+  CommentToken: function(token) {
+    var current = this.currentElement();
+    var comment = new CommentNode(token.chars);
+
+    appendChild(current, comment);
+  },
 
   Chars: function(token) {
     var current = this.currentElement();
@@ -66,8 +69,10 @@ var tokenHandlers = {
     }
   },
 
-  block: function(block) {
-    if (this.tokenizer.state !== 'data') {
+  block: function(/*block*/) {
+    if (this.tokenizer.state === 'comment') {
+      return;
+    } else if (this.tokenizer.state !== 'data') {
       throw new Error("A block may only be used inside an HTML element or another block.");
     }
   },
@@ -76,15 +81,23 @@ var tokenHandlers = {
     var state = this.tokenizer.state;
     var token = this.tokenizer.token;
 
-    switch(states[state]) {
-      case "before-attr":
+    switch(state) {
+      case "beforeAttributeValue":
         this.tokenizer.state = 'attributeValueUnquoted';
-        token.addToAttributeValue(mustache);
+        token.markAttributeQuoted(false);
+        token.addToAttributeValue(mustache.sexpr);
+        token.finalizeAttributeValue();
         return;
-      case "attr":
-        token.addToAttributeValue(mustache);
+      case "attributeValueDoubleQuoted":
+      case "attributeValueSingleQuoted":
+        token.markAttributeQuoted(true);
+        token.addToAttributeValue(mustache.sexpr);
         return;
-      case "in-tag":
+      case "attributeValueUnquoted":
+        token.markAttributeQuoted(false);
+        token.addToAttributeValue(mustache.sexpr);
+        return;
+      case "beforeAttributeName":
         token.addTagHelper(mustache);
         return;
       default:
@@ -95,15 +108,16 @@ var tokenHandlers = {
   EndTag: function(tag) {
     var element = this.elementStack.pop();
     var parent = this.currentElement();
+    var disableComponentGeneration = this.options.disableComponentGeneration === true;
 
     if (element.tag !== tag.tagName) {
       throw new Error("Closing tag " + tag.tagName + " did not match last open tag " + element.tag);
     }
 
-    if (element.tag.indexOf("-") === -1) {
+    if (disableComponentGeneration || element.tag.indexOf("-") === -1) {
       appendChild(parent, element);
     } else {
-      var program = new ProgramNode(element.children, { left: false, right: false });
+      var program = new ProgramNode(element.children, null, { left: false, right: false });
       postprocessProgram(program);
       var component = new ComponentNode(element.tag, element.attributes, program);
       appendChild(parent, component);

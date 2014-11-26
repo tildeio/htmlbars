@@ -2,7 +2,7 @@ import {DOMHelper} from "../morph";
 import {
   equalHTML,
   isCheckedInputHTML
-} from "../test/support/assertions";
+} from "../htmlbars-test-helpers";
 
 var xhtmlNamespace = "http://www.w3.org/1999/xhtml",
     svgNamespace   = "http://www.w3.org/2000/svg";
@@ -39,9 +39,19 @@ test('#setAttribute', function(){
   equalHTML(node, '<div id="super-tag"></div>');
 });
 
+test('#removeAttribute', function(){
+  var node = dom.createElement('div');
+  dom.setAttribute(node, 'id', 'super-tag');
+  equalHTML(node, '<div id="super-tag"></div>', 'precond - attribute exists');
+
+
+  dom.removeAttribute(node, 'id');
+  equalHTML(node, '<div></div>', 'attribute was removed');
+});
+
 test('#createElement of tr with contextual table element', function(){
   var tableElement = document.createElement('table'),
-      node = dom.createElement('tr');
+      node = dom.createElement('tr', tableElement);
   equal(node.tagName, 'TR');
   equalHTML(node, '<tr></tr>');
 });
@@ -130,6 +140,54 @@ test('#parseHTML of script then tr inside table context wraps the tr in a tbody'
   equal(nodes.length, 2, 'Leading script tag corrupts');
   equal(nodes[0].tagName, 'SCRIPT');
   equal(nodes[1].tagName, 'TBODY');
+});
+
+test('#parseHTML of select allows the initial implicit option selection to remain', function(){
+  var div = document.createElement('div');
+  var select = dom.parseHTML('<select><option></option></select>', div)[0];
+
+  ok(select.childNodes[0].selected, 'first element is selected');
+});
+
+test('#parseHTML of options removes an implicit selection', function(){
+  var select = document.createElement('select');
+  var options = dom.parseHTML(
+    '<option value="1"></option><option value="2"></option>',
+    select
+  );
+
+  ok(!options[0].selected, 'first element is not selected');
+  ok(!options[1].selected, 'second element is not selected');
+});
+
+test('#parseHTML of options leaves an explicit first selection', function(){
+  var select = document.createElement('select');
+  var options = dom.parseHTML(
+    '<option value="1" selected></option><option value="2"></option>',
+    select
+  );
+
+  ok(options[0].selected, 'first element is selected');
+  ok(!options[1].selected, 'second element is not selected');
+});
+
+test('#parseHTML of options leaves an explicit second selection', function(){
+  var select = document.createElement('select');
+  var options = dom.parseHTML(
+    '<option value="1"></option><option value="2" selected="selected"></option>',
+    select
+  );
+
+  ok(!options[0].selected, 'first element is not selected');
+  ok(options[1].selected, 'second element is selected');
+});
+
+test('#parseHTML of script then tr inside tbody context', function(){
+  var tbodyElement = document.createElement('tbody'),
+      nodes = dom.parseHTML('<script></script><tr><td>Yo</td></tr>', tbodyElement);
+  equal(nodes.length, 2, 'Leading script tag corrupts');
+  equal(nodes[0].tagName, 'SCRIPT');
+  equal(nodes[1].tagName, 'TR');
 });
 
 test('#parseHTML with retains whitespace', function(){

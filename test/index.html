@@ -10,7 +10,7 @@
   <div id="qunit-fixture"></div>
   <script src="qunit.js"></script>
   <script src="/testem.js"></script>
-  <script src="loader.js"></script>
+  <script src="../assets/loader.js"></script>
   <script src="test-support.amd.js"></script>
   <script src="packages-config.js"></script>
 
@@ -26,7 +26,7 @@
     }
 
     function injectLib(packageName) {
-      injectScript("../" + packageName + ".amd.js");
+      injectScript("../amd/" + packageName + ".amd.js");
     }
 
     function injectTests(packageName) {
@@ -92,7 +92,7 @@
 
       for (var i = 0; i < packagesToTest.length; i++) {
         if (root === packagesToTest[i] + '-tests') {
-          if (key.match(/-jshint\//) && QUnit.urlParams.nojshint) {
+          if (key.match(/\.jshint$/) && QUnit.urlParams.nojshint) {
             continue;
           }
           requireModule(key);

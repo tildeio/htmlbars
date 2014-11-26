@@ -1,5 +1,23 @@
 {
-  "esnext": true,
-  "boss": true,
-  "debug": true
+  "predef": {
+    "document": true,
+    "QUnit": true,
+    "test": true,
+    "expect": true,
+    "equal": true,
+    "deepEqual": true,
+    "ok": true
+  },
+  "camelcase": true,
+  "curly": true,
+  "eqeqeq": true,
+  "freeze": true,
+  "immed": true,
+  "indent": 2,
+  "latedef": "nofunc",
+  "newcap": true,
+  "noarg": true,
+  "undef": true,
+  "unused": true,
+  "esnext": true
 }

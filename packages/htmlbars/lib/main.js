@@ -1,8 +1,13 @@
+/*
+ * @overview  HTMLBars
+ * @copyright Copyright 2011-2014 Tilde Inc. and contributors
+ * @license   Licensed under MIT license
+ *            See https://raw.githubusercontent.com/tildeio/htmlbars/master/LICENSE
+ * @version   VERSION_STRING_PLACEHOLDER
+ */
+
 import {compile, compileSpec} from "./htmlbars-compiler/compiler";
-export {compile, compileSpec};
-
 import Morph from "./morph/morph";
-export var Morph;
-
 import DOMHelper from "./morph/dom-helper";
-export var DOMHelper;
+
+export {compile, compileSpec, Morph, DOMHelper};

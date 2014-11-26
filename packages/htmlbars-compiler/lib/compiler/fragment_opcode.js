@@ -24,6 +24,11 @@ FragmentOpcodeCompiler.prototype.text = function(text, childIndex, childCount, i
   if (!isSingleRoot) { this.opcode('appendChild'); }
 };
 
+FragmentOpcodeCompiler.prototype.comment = function(comment, childIndex, childCount, isSingleRoot) {
+  this.opcode('createComment', [comment.chars]);
+  if (!isSingleRoot) { this.opcode('appendChild'); }
+};
+
 FragmentOpcodeCompiler.prototype.openElement = function(element) {
   this.opcode('createElement', [element.tag]);
   forEach(element.attributes, this.attribute, this);
@@ -40,7 +45,7 @@ FragmentOpcodeCompiler.prototype.startProgram = function(program) {
   }
 };
 
-FragmentOpcodeCompiler.prototype.endProgram = function(program) {
+FragmentOpcodeCompiler.prototype.endProgram = function(/* program */) {
   this.opcode('returnNode');
 };
 

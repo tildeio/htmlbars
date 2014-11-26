@@ -1,32 +1,32 @@
 import { merge } from "./utils";
-import SafeString from '../handlebars/safe-string';
 
-export function content(morph, helperName, context, params, options, env) {
+export function content(morph, helperName, context, params, hash, options, env) {
   var value, helper = this.lookupHelper(helperName, context, options);
   if (helper) {
-    value = helper(params, options, env);
+    value = helper.call(context, params, hash, options, env);
   } else {
-    value = this.simple(context, helperName, options);
-  }
-  if (!options.escaped) {
-    value = new SafeString(value);
+    if (options.type === 'value') {
+      value = helperName;
+    } else {
+      value = this.simple(context, helperName, options);
+    }
   }
   morph.update(value);
 }
 
-export function webComponent(morph, tagName, context, options, env) {
+export function component(morph, tagName, context, hash, options, env) {
   var value, helper = this.lookupHelper(tagName, context, options);
   if (helper) {
-    value = helper(null, options, env);
+    value = helper.call(context, null, hash, options, env);
   } else {
-    value = this.webComponentFallback(morph, tagName, context, options, env);
+    value = this.componentFallback(morph, tagName, context, hash, options, env);
   }
   morph.update(value);
 }
 
-export function webComponentFallback(morph, tagName, context, options, env) {
+export function componentFallback(morph, tagName, context, hash, options, env) {
   var element = env.dom.createElement(tagName);
-  var hash = options.hash, hashTypes = options.hashTypes;
+  var hashTypes = options.hashTypes;
 
   for (var name in hash) {
     if (hashTypes[name] === 'id') {
@@ -39,30 +39,34 @@ export function webComponentFallback(morph, tagName, context, options, env) {
   return element;
 }
 
-export function element(domElement, helperName, context, params, options, env) {
+export function element(domElement, helperName, context, params, hash, options, env) {
   var helper = this.lookupHelper(helperName, context, options);
   if (helper) {
-    helper(params, options, env);
+    helper.call(context, params, hash, options, env);
   }
 }
 
-export function attribute(params, options, env) {
-  var attrName = params[0];
-  var attrValue = params[1];
+export function attribute(domElement, attributeName, quoted, context, parts, options, env) {
+  var attrValue;
+
+  if (quoted) {
+    attrValue = concat.call(this, parts, null, options, env);
+  } else {
+    attrValue = parts[0];
+  }
 
   if (attrValue === null) {
-    options.element.removeAttribute(attrName);
+    domElement.removeAttribute(attributeName);
   } else {
-    options.element.setAttribute(attrName, attrValue);
+    domElement.setAttribute(attributeName, attrValue);
   }
 }
 
-export function concat(params, options, env) {
-  var context = options.context;
+export function concat(params, hash, options /*, env*/) {
   var value = "";
   for (var i = 0, l = params.length; i < l; i++) {
-    if (options.types[i] === 'id') {
-      value += this.simple(context, params[i], options);
+    if (options.paramTypes[i] === 'id') {
+      value += this.simple(this, params[i], options);
     } else {
       value += params[i];
     }
@@ -70,20 +74,20 @@ export function concat(params, options, env) {
   return value;
 }
 
-export function partial(params, options, env) {
-  return env.partials[params[0]](options.context, env);
+export function partial(params, hash, options, env) {
+  return env.partials[params[0]](this, env);
 }
 
-export function subexpr(helperName, context, params, options, env) {
+export function subexpr(helperName, context, params, hash, options, env) {
   var helper = this.lookupHelper(helperName, context, options);
   if (helper) {
-    return helper(params, options, env);
+    return helper.call(context, params, hash, options, env);
   } else {
     return this.simple(context, helperName, options);
   }
 }
 
-export function lookupHelper(helperName, context, options) {
+export function lookupHelper(helperName /*, context, options*/) {
   if (helperName === 'attribute') {
     return this.attribute;
   }
@@ -95,22 +99,27 @@ export function lookupHelper(helperName, context, options) {
   }
 }
 
-export function simple(context, name, options) {
+export function simple(context, name /*, options*/) {
   return context[name];
+}
+
+export function set(context, name, value) {
+  context[name] = value;
 }
 
 export function hydrationHooks(extensions) {
   var base = {
     content: content,
-    webComponent: webComponent,
-    webComponentFallback: webComponentFallback,
+    component: component,
+    componentFallback: componentFallback,
     element: element,
     attribute: attribute,
     concat: concat,
     subexpr: subexpr,
     lookupHelper: lookupHelper,
     simple: simple,
-    partial: partial
+    partial: partial,
+    set: set
   };
 
   return extensions ? merge(extensions, base) : base;

@@ -136,7 +136,7 @@ test("nested blocks", function() {
   ]);
 });
 
-test("web component", function() {
+test("component", function() {
   var input = "<x-foo>bar</x-foo>";
   actionsEqual(input, [
     ['startProgram', [0, []]],
@@ -146,6 +146,15 @@ test("web component", function() {
     ['text', [0, 3, false]],
     ['component', [1, 3]],
     ['text', [2, 3, false]],
+    ['endProgram', [0]]
+  ]);
+});
+
+test("comment", function() {
+  var input = "<!-- some comment -->";
+  actionsEqual(input, [
+    ['startProgram', [0, []]],
+    ['comment', [0, 1, true]],
     ['endProgram', [0]]
   ]);
 });

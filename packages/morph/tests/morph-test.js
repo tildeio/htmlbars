@@ -1,6 +1,5 @@
-import Morph from "../morph/morph";
-import { equalHTML, equalInnerHTML } from "../test/support/assertions";
-import SafeString from '../handlebars/safe-string';
+import { equalHTML, equalInnerHTML } from "../htmlbars-test-helpers";
+import SafeString from '../htmlbars-util/safe-string';
 import DOMHelper from "../morph/dom-helper";
 
 var domHelper = new DOMHelper();
@@ -12,7 +11,6 @@ function morphTests(factory) {
       fragment = setup.fragment,
       morph = setup.morph,
       startHTML = setup.startHTML,
-      contentHTML = setup.contentHTML,
       endHTML = setup.endHTML,
       html;
 
@@ -37,7 +35,6 @@ function morphTests(factory) {
       fragment = setup.fragment,
       morph = setup.morph,
       startHTML = setup.startHTML,
-      contentHTML = setup.contentHTML,
       endHTML = setup.endHTML,
       html;
 
@@ -62,7 +59,6 @@ function morphTests(factory) {
       fragment = setup.fragment,
       morph = setup.morph,
       startHTML = setup.startHTML,
-      contentHTML = setup.contentHTML,
       endHTML = setup.endHTML,
       html;
 
@@ -115,7 +111,8 @@ function morphTests(factory) {
   });
 
   test('update '+factory.name, function () {
-    var setup = factory.create(),
+    var div = document.createElement('div'),
+      setup = factory.create(),
       fragment = setup.fragment,
       morph = setup.morph,
       startHTML = setup.startHTML,
@@ -140,6 +137,27 @@ function morphTests(factory) {
     morph.update(duckTypedSafeString);
     html = startHTML+'<div>updated</div>'+endHTML;
     equalHTML(fragment, html);
+
+    var newFrag = document.createDocumentFragment();
+    newFrag.appendChild(fragment);
+
+    morph.update('oh hai');
+    html = startHTML+'oh hai'+endHTML;
+    equalHTML(newFrag, html);
+
+    morph.update('oh bai');
+    html = startHTML+'oh bai'+endHTML;
+    equalHTML(newFrag, html);
+
+    div.appendChild(newFrag);
+
+    morph.update('oh hai');
+    html = '<div>'+startHTML+'oh hai'+endHTML+'</div>';
+    equalHTML(div, html);
+
+    morph.update('oh bai');
+    html = '<div>'+startHTML+'oh bai'+endHTML+'</div>';
+    equalHTML(div, html);
   });
 }
 
@@ -285,10 +303,6 @@ function element(tag, text) {
   return el;
 }
 
-function textNode(text) {
-  return document.createTextNode(text);
-}
-
 var parents = [
   {
     name: 'with parent as an element',
@@ -322,7 +336,7 @@ var starts = [
   },
   {
     name: 'with no sibling before',
-    create: function (parent) {
+    create: function () {
       return -1;
     },
     HTML: ''
@@ -341,7 +355,7 @@ var ends = [
   },
   {
     name: 'and no sibling after',
-    create: function (parent) {
+    create: function () {
       return -1;
     },
     HTML: ''
@@ -351,7 +365,7 @@ var ends = [
 var contents = [
   {
     name: 'with an empty Morph',
-    create: function (parent) { },
+    create: function () { },
     HTML: ''
   },
   {
@@ -380,7 +394,6 @@ function iterateCombinations(parents, starts, ends, contents, callback) {
         var fragment = document.createDocumentFragment(),
         parent = parentFactory.create(fragment),
         startIndex = startFactory.create(parent),
-        content = contentFactory.create(parent),
         endIndex = endFactory.create(parent);
 
         // this is prevented in the parser by generating
@@ -406,7 +419,9 @@ function iterateCombinations(parents, starts, ends, contents, callback) {
       for (var k=0; k<ends.length; k++) {
         for (var l=0; l<contents.length; l++) {
           var factory = buildFactory(parents[i], starts[j], ends[k], contents[l]);
-          if (factory.create() === null) continue; // unsupported combo
+          if (factory.create() === null) {
+            continue; // unsupported combo
+          }
           callback(factory);
         }
       }

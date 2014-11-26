@@ -1,4 +1,4 @@
-import AST from "../handlebars/compiler/ast";
+import AST from "./handlebars/compiler/ast";
 
 export var MustacheNode = AST.MustacheNode;
 export var SexprNode = AST.SexprNode;
@@ -6,15 +6,16 @@ export var HashNode = AST.HashNode;
 export var IdNode = AST.IdNode;
 export var StringNode = AST.StringNode;
 
-export function ProgramNode(statements, strip) {
+export function ProgramNode(statements, blockParams, strip) {
   this.type = 'program';
   this.statements = statements;
+  this.blockParams = blockParams;
   this.strip = strip;
 }
 
-export function BlockNode(mustache, program, inverse, strip) {
+export function BlockNode(sexpr, program, inverse, strip) {
   this.type = 'block';
-  this.mustache = mustache;
+  this.sexpr = sexpr;
   this.program = program;
   this.inverse = inverse;
   this.strip = strip;
@@ -47,10 +48,11 @@ export function PartialNode(name) {
   this.isHelper = true;
 }
 
-export function AttrNode(name, value) {
+export function AttrNode(name, value, quoted) {
   this.type = 'attr';
   this.name = name;
   this.value = value;
+  this.quoted = quoted;
 }
 
 export function TextNode(chars) {
@@ -58,9 +60,18 @@ export function TextNode(chars) {
   this.chars = chars;
 }
 
+export function CommentNode(chars) {
+  this.type = 'comment';
+  this.chars = chars;
+}
+
 export function childrenFor(node) {
-  if (node.type === 'program') return node.statements;
-  if (node.type === 'element') return node.children;
+  if (node.type === 'program') {
+    return node.statements;
+  }
+  if (node.type === 'element') {
+    return node.children;
+  }
 }
 
 export function usesMorph(node) {

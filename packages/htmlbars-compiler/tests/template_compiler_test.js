@@ -1,6 +1,6 @@
 import { TemplateCompiler } from "../htmlbars-compiler/compiler/template";
 import { preprocess } from "../htmlbars-compiler/parser";
-import { equalHTML } from "../test/support/assertions";
+import { equalHTML } from "../htmlbars-test-helpers";
 import { DOMHelper } from "../morph";
 
 QUnit.module("TemplateCompiler");
@@ -8,7 +8,7 @@ QUnit.module("TemplateCompiler");
 var dom = new DOMHelper();
 
 var hooks = {
-  content: function(morph, helperName, context, params, options, env) {
+  content: function(morph, helperName, context, params, hash, options, env) {
     if (helperName === 'if') {
       if (context[params[0]]) {
         options.hooks = this;

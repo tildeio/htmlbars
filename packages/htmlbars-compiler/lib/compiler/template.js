@@ -6,7 +6,8 @@ import TemplateVisitor from "./template_visitor";
 import { processOpcodes } from "./utils";
 import { string, repeat } from "./quoting";
 
-export function TemplateCompiler() {
+export function TemplateCompiler(options) {
+  this.options = options || {};
   this.fragmentOpcodeCompiler = new FragmentOpcodeCompiler();
   this.fragmentCompiler = new FragmentCompiler();
   this.hydrationOpcodeCompiler = new HydrationOpcodeCompiler();
@@ -34,6 +35,26 @@ TemplateCompiler.prototype.startProgram = function(program, childTemplateCount, 
   }
 };
 
+TemplateCompiler.prototype.getChildTemplateVars = function(indent) {
+  var vars = '';
+  if (this.childTemplates) {
+    for (var i = 0; i < this.childTemplates.length; i++) {
+      vars += indent + 'var child' + i + ' = ' + this.childTemplates[i] + '\n';
+    }
+  }
+  return vars;
+};
+
+TemplateCompiler.prototype.getContextAssignments = function(indent, blockParams) {
+  var assignments = '';
+  if (blockParams) {
+    for (var i = 0; i < blockParams.length; i++) {
+      assignments += indent + 'hooks.set(context, ' + string(blockParams[i]) +', blockArguments[' + i + ']);\n';
+    }
+  }
+  return assignments;
+};
+
 TemplateCompiler.prototype.endProgram = function(program, programDepth) {
   this.fragmentOpcodeCompiler.endProgram(program);
   this.hydrationOpcodeCompiler.endProgram(program);
@@ -55,18 +76,22 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     options
   );
 
-  var childTemplateVars = "";
-  for (var i=0, l=this.childTemplates.length; i<l; i++) {
-    childTemplateVars += indent+'  var child' + i + ' = ' + this.childTemplates[i] + '\n';
+  var blockParams = program.blockParams;
+  var hasBlockParams = blockParams && blockParams.length > 0;
+
+  var templateSignature = 'context, env, contextualElement';
+  if (hasBlockParams) {
+    templateSignature += ', blockArguments';
   }
 
   var template =
     '(function() {\n' +
-    childTemplateVars +
+    this.getChildTemplateVars(indent + '  ') +
     fragmentProgram +
     indent+'  var cachedFragment;\n' +
-    indent+'  return function template(context, env, contextualElement) {\n' +
+    indent+'  return function template(' + templateSignature + ') {\n' +
     indent+'    var dom = env.dom, hooks = env.hooks;\n' +
+    this.getContextAssignments(indent + '    ', blockParams) +
     indent+'    dom.detectNamespace(contextualElement);\n' +
     indent+'    if (cachedFragment === undefined) {\n' +
     indent+'      cachedFragment = build(dom);\n' +
@@ -75,7 +100,7 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     hydrationProgram +
     indent+'    return fragment;\n' +
     indent+'  };\n' +
-    indent+'}());';
+    indent+'}())';
 
   this.templates.push(template);
 };
@@ -103,6 +128,11 @@ TemplateCompiler.prototype.block = function(block, i, l) {
 TemplateCompiler.prototype.text = function(string, i, l, r) {
   this.fragmentOpcodeCompiler.text(string, i, l, r);
   this.hydrationOpcodeCompiler.text(string, i, l, r);
+};
+
+TemplateCompiler.prototype.comment = function(string, i, l, r) {
+  this.fragmentOpcodeCompiler.comment(string, i, l, r);
+  this.hydrationOpcodeCompiler.comment(string, i, l, r);
 };
 
 TemplateCompiler.prototype.mustache = function (mustache, i, l) {

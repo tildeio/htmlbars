@@ -32,7 +32,7 @@ HydrationOpcodeCompiler.prototype.compile = function(ast) {
   return this.opcodes;
 };
 
-HydrationOpcodeCompiler.prototype.startProgram = function(p, c, blankChildTextNodes) {
+HydrationOpcodeCompiler.prototype.startProgram = function(program, c, blankChildTextNodes) {
   this.opcodes.length = 0;
   this.paths.length = 0;
   this.morphs.length = 0;
@@ -46,11 +46,15 @@ HydrationOpcodeCompiler.prototype.startProgram = function(p, c, blankChildTextNo
   }
 };
 
-HydrationOpcodeCompiler.prototype.endProgram = function(program) {
+HydrationOpcodeCompiler.prototype.endProgram = function(/* program */) {
   distributeMorphs(this.morphs, this.opcodes);
 };
 
-HydrationOpcodeCompiler.prototype.text = function(string, pos, len) {
+HydrationOpcodeCompiler.prototype.text = function(/* string, pos, len */) {
+  ++this.currentDOMChildIndex;
+};
+
+HydrationOpcodeCompiler.prototype.comment = function(/* string, pos, len */) {
   ++this.currentDOMChildIndex;
 };
 
@@ -90,19 +94,21 @@ HydrationOpcodeCompiler.prototype.closeElement = function(element, pos, len, isS
 };
 
 HydrationOpcodeCompiler.prototype.block = function(block, childIndex, childrenLength) {
-  var currentDOMChildIndex = this.currentDOMChildIndex,
-      mustache = block.mustache;
+  var sexpr = block.sexpr;
+  var program = block.program;
 
-  var start = (currentDOMChildIndex < 0 ? null : currentDOMChildIndex),
-      end = (childIndex === childrenLength - 1 ? null : currentDOMChildIndex + 1);
+  var blockParamsLength = program && program.blockParams ? program.blockParams.length : 0;
+
+  var currentDOMChildIndex = this.currentDOMChildIndex;
+  var start = (currentDOMChildIndex < 0) ? null : currentDOMChildIndex;
+  var end = (childIndex === childrenLength - 1) ? null : currentDOMChildIndex + 1;
 
   var morphNum = this.morphNum++;
-  this.morphs.push([morphNum, this.paths.slice(), start, end]);
+  this.morphs.push([morphNum, this.paths.slice(), start, end, true]);
 
   this.opcode('program', this.templateId++, block.inverse === null ? null : this.templateId++);
-  processParams(this, mustache.params);
-  processHash(this, mustache.hash);
-  this.opcode('helper', mustache.id.string, mustache.params.length, mustache.escaped, morphNum);
+  processSexpr(this, sexpr);
+  this.opcode('helper', sexpr.params.length, morphNum, blockParamsLength);
 };
 
 HydrationOpcodeCompiler.prototype.component = function(component, childIndex, childrenLength) {
@@ -114,9 +120,15 @@ HydrationOpcodeCompiler.prototype.component = function(component, childIndex, ch
   var morphNum = this.morphNum++;
   this.morphs.push([morphNum, this.paths.slice(), start, end]);
 
+  var id = {
+    string: component.tag,
+    parts: component.tag.split('.')
+  };
+
   this.opcode('program', this.templateId++, null);
+  this.ID(id);
   processHash(this, buildHashFromAttributes(component.attributes));
-  this.opcode('component', component.tag, morphNum);
+  this.opcode('component', morphNum);
 };
 
 HydrationOpcodeCompiler.prototype.opcode = function(type) {
@@ -125,30 +137,32 @@ HydrationOpcodeCompiler.prototype.opcode = function(type) {
 };
 
 HydrationOpcodeCompiler.prototype.attribute = function(attr) {
-  if (attr.value.type === 'text') return;
+  if (attr.value.type === 'text') {
+    return;
+  }
 
-  // We treat attribute like a attribute helper evaluated by the element hook.
-  // <p {{attribute 'class' 'foo ' (bar)}}></p>
-  // Unwrapped any mustaches to just be their internal sexprs.
-  this.nodeHelper({
-    params: [attr.name, attr.value.sexpr],
-    hash: null,
-    id: {
-      string: 'attribute'
-    }
-  });
+  var params = attr.value;
+
+  this.opcode('program', null, null);
+  processSexpr(this, { params: params });
+
+  if (this.element !== null) {
+    this.opcode('element', ++this.elementNum);
+    this.element = null;
+  }
+  this.opcode('attribute', attr.quoted, attr.name, params.length, this.elementNum);
 };
 
 HydrationOpcodeCompiler.prototype.nodeHelper = function(mustache) {
+  var sexpr = mustache.sexpr;
   this.opcode('program', null, null);
-  processParams(this, mustache.params);
-  processHash(this, mustache.hash);
+  processSexpr(this, sexpr);
   // If we have a helper in a node, and this element has not been cached, cache it
   if(this.element !== null){
     this.opcode('element', ++this.elementNum);
     this.element = null; // Reset element so we don't cache it more than once
   }
-  this.opcode('nodeHelper', mustache.id.string, mustache.params.length, this.elementNum);
+  this.opcode('nodeHelper', sexpr.params.length, this.elementNum);
 };
 
 HydrationOpcodeCompiler.prototype.mustache = function(mustache, childIndex, childrenLength) {
@@ -158,39 +172,27 @@ HydrationOpcodeCompiler.prototype.mustache = function(mustache, childIndex, chil
       end = (childIndex === childrenLength - 1 ? -1 : currentDOMChildIndex + 1);
 
   var morphNum = this.morphNum++;
-  this.morphs.push([morphNum, this.paths.slice(), start, end]);
+  this.morphs.push([morphNum, this.paths.slice(), start, end, mustache.escaped]);
 
   if (mustache.isHelper) {
     this.opcode('program', null, null);
-    processParams(this, mustache.params);
-    processHash(this, mustache.hash);
-    this.opcode('helper', (mustache.id.string || mustache.id.idName), mustache.params.length, mustache.escaped, morphNum);
+    processSexpr(this, mustache);
+    this.opcode('helper', mustache.params.length, morphNum);
   } else {
-    this.opcode('ambiguous', (mustache.id.string || mustache.id.idName), mustache.escaped, morphNum);
+    this.ID(mustache.id);
+    this.opcode('ambiguous', morphNum);
   }
 };
 
 HydrationOpcodeCompiler.prototype.sexpr = function(sexpr) {
   this.string('sexpr');
   this.opcode('program', null, null);
-  processParams(this, sexpr.params);
-  processHash(this, sexpr.hash);
-  this.opcode('sexpr', (sexpr.id.string || sexpr.id.idName), sexpr.params.length);
+  processSexpr(this, sexpr);
+  this.opcode('sexpr', sexpr.params.length);
 };
 
 HydrationOpcodeCompiler.prototype.string = function(str) {
   this.opcode('string', str);
-};
-
-HydrationOpcodeCompiler.prototype.mustacheInAttr = function(mustache) {
-  if (mustache.isHelper) {
-    this.opcode('program', null, null);
-    processParams(this, mustache.params);
-    processHash(this, mustache.hash);
-    this.opcode('helperAttr', (mustache.id.string || mustache.id.idName), mustache.params.length, mustache.escaped);
-  } else {
-    this.opcode('ambiguousAttr', (mustache.id.string || mustache.id.idName), mustache.escaped);
-  }
 };
 
 HydrationOpcodeCompiler.prototype.ID = function(id) {
@@ -205,9 +207,23 @@ HydrationOpcodeCompiler.prototype.BOOLEAN = function(boolean) {
   this.opcode('literal', boolean.stringModeValue);
 };
 
-HydrationOpcodeCompiler.prototype.INTEGER = function(integer) {
+HydrationOpcodeCompiler.prototype.NUMBER = function(integer) {
   this.opcode('literal', integer.stringModeValue);
 };
+
+function processSexpr(compiler, sexpr) {
+  processName(compiler, sexpr.id);
+  processParams(compiler, sexpr.params);
+  processHash(compiler, sexpr.hash);
+}
+
+function processName(compiler, id) {
+  if (id) {
+    compiler.ID(id);
+  } else {
+    compiler.opcode('id', null);
+  }
+}
 
 function processParams(compiler, params) {
   forEach(params, function(param) {
@@ -250,8 +266,7 @@ function distributeMorphs(morphs, opcodes) {
 
   var spliceArgs = [o + 1, 0];
   for (var i = 0; i < morphs.length; ++i) {
-    var p = morphs[i];
-    spliceArgs.push(['morph', [p[0], p[1], p[2], p[3]]]);
+    spliceArgs.push(['morph', morphs[i].slice()]);
   }
   opcodes.splice.apply(opcodes, spliceArgs);
   morphs.length = 0;
