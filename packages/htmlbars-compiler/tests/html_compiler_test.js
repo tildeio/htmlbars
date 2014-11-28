@@ -966,6 +966,20 @@ test("Block params - Helper should know how many block params it was called with
   compile('{{#with-block-params as |x y z|}}{{/with-block-params}}')({ count: 3 }, env, document.body);
 });
 
+test("Closing tags are not required for <li> elements", function() {
+  var template = compile("<ul><li>Something<li>Something Else</ul>");
+  var fragment = template({}, env);
+
+  equalTokens(fragment, '<ul><li>Something<li>Something Else</ul>');
+});
+
+test("Closing tags are not required for <p> elements", function() {
+  var template = compile("<div><p>Something</div>");
+  var fragment = template({}, env);
+
+  equalTokens(fragment, '<div><p>Something</div>');
+});
+
 if (document.createElement('div').namespaceURI) {
 
 QUnit.module("HTML-based compiler (output, svg)", {
