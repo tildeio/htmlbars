@@ -978,6 +978,20 @@ test("A helpful error message is provided for mismatched start/end tags", functi
   }, /Closing tag `div` \(on line 5\) did not match last open tag `p`\./);
 });
 
+test("Closing tags are not required for <li> elements", function() {
+  var template = compile("<ul><li>Something<li>Something Else</ul>");
+  var fragment = template({}, env);
+
+  equalTokens(fragment, '<ul><li>Something<li>Something Else</ul>');
+});
+
+test("Closing tags are not required for <p> elements", function() {
+  var template = compile("<div><p>Something</div>");
+  var fragment = template({}, env);
+
+  equalTokens(fragment, '<div><p>Something</div>');
+});
+
 if (document.createElement('div').namespaceURI) {
 
 QUnit.module("HTML-based compiler (output, svg)", {
