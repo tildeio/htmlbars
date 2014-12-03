@@ -177,7 +177,7 @@ prototype.pushMustacheInNode = function(name, args, hashArgs, optionPairs, eleme
 
 prototype.shareParent = function(i) {
   var parentNodesName = "parent" + this.parentCount++;
-  this.fragmentProcessing.push('var '+parentNodesName+' = '+this.getParent()+'.childNodes['+i+']');
+  this.fragmentProcessing.push('var '+parentNodesName+' = '+this.getParent()+'.childNodes['+i+'];');
   this.parents.push(parentNodesName);
 };
 
