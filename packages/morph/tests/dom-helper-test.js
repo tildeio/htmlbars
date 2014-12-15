@@ -26,6 +26,25 @@ test('#createElement', function(){
   equalHTML(node, '<div></div>');
 });
 
+test('#createElement with attributes', function() {
+  var node = dom.createElement('div', null, {
+    'class': 'node',
+    id: 'special'
+  });
+  equal(node.tagName, 'DIV');
+  equalHTML(node, '<div class="node" id="special"></div>');
+});
+
+test('#createElement with contextualElement and attributes', function() {
+  var contextualElement = dom.createElement('table');
+  var node = dom.createElement('tr', contextualElement, {
+    'class': 'node',
+    id: 'special'
+  });
+  equal(node.tagName, 'TR');
+  equalHTML(node, '<tr class="node" id="special"></tr>');
+});
+
 test('#appendText adds text', function(){
   var node = dom.createElement('div');
   var text = dom.appendText(node, 'Howdy');

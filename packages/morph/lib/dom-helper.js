@@ -26,6 +26,16 @@ var ignoresCheckedAttribute = doc && (function(document){
   return !clonedElement.checked;
 })(doc);
 
+// IE7 and below you cannot set name at runtime
+var canSetNameOnInputs = doc && (function(document) {
+  var parent = document.createElement('div'),
+      input = document.createElement('input');
+
+  input.setAttribute('name', 'child');
+  parent.appendChild(input);
+  return !!parent.innerHTML.match('child');
+})(doc);
+
 function isSVG(ns){
   return ns === svgNamespace;
 }
@@ -42,6 +52,31 @@ function interiorNamespace(element){
   } else {
     return null;
   }
+}
+
+function generateTagString (element, attrs) {
+  var tagString = '',
+      attr;
+
+  tagString = '<' + element;
+
+  for (attr in attrs) {
+    tagString += (attr + '="' + attrs[attr] + '"');
+  }
+
+  tagString += '>';
+
+  return tagString;
+}
+
+function setAttributes(element, attrs) {
+  var attr;
+
+  for (attr in attrs) {
+    element.setAttribute(attr, attrs[attr]);
+  }
+
+  return element;
 }
 
 // The HTML spec allows for "omitted start tags". These tags are optional
@@ -147,8 +182,10 @@ prototype.setProperty = function(element, name, value) {
 if (doc && doc.createElementNS) {
   // Only opt into namespace detection if a contextualElement
   // is passed.
-  prototype.createElement = function(tagName, contextualElement) {
-    var namespace = this.namespace;
+  prototype.createElement = function(tagName, contextualElement, attrs) {
+    var namespace = this.namespace,
+        element;
+
     if (contextualElement) {
       if (tagName === 'svg') {
         namespace = svgNamespace;
@@ -156,14 +193,31 @@ if (doc && doc.createElementNS) {
         namespace = interiorNamespace(contextualElement);
       }
     }
+
     if (namespace) {
-      return this.document.createElementNS(namespace, tagName);
+      element = this.document.createElementNS(namespace, tagName);
     } else {
-      return this.document.createElement(tagName);
+      element = this.document.createElement(tagName);
     }
+    
+    if (attrs) {
+      return setAttributes(element, attrs);
+    }
+
+    return element;
   };
 } else {
-  prototype.createElement = function(tagName) {
+  prototype.createElement = function(tagName, attrs) {
+    if (attrs) {
+      if (canSetNameOnInputs || !attrs.name) {
+        return setAttributes(this.document.createElement(tagName), attrs);
+      } else {
+        return this.document.createElement(
+          generateTagString(tagName, attrs)
+        );
+      }
+    }
+
     return this.document.createElement(tagName);
   };
 }
