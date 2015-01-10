@@ -197,8 +197,9 @@ prototype.setProperty = function(element, name, value, namespace) {
 if (doc && doc.createElementNS) {
   // Only opt into namespace detection if a contextualElement
   // is passed.
-  prototype.createElement = function(tagName, contextualElement) {
+  prototype.createElement = function(tagName, contextualElement, attributes) {
     var namespace = this.namespace;
+    attributes = attributes || {};
     if (contextualElement) {
       if (tagName === 'svg') {
         namespace = svgNamespace;
@@ -207,16 +208,50 @@ if (doc && doc.createElementNS) {
       }
     }
     if (namespace) {
-      return this.document.createElementNS(namespace, tagName);
+      var element = this.document.createElementNS(namespace, tagName);
+      for (var attributesName in attributes) {
+        element.setAttributeNS(namespace, attributesName, attributes[attributesName]);
+      }
+      return element;
     } else {
-      return this.document.createElement(tagName);
+      return this.createElementWithAttributes(tagName, attributes);
     }
   };
 } else {
-  prototype.createElement = function(tagName) {
-    return this.document.createElement(tagName);
+  prototype.createElement = function(tagName, attributes) {
+    return this.createElementWithAttributes(tagName, attributes);
   };
 }
+
+var canSetNameOnInputs = (function() {
+  if (!doc) {
+    return true;
+  }
+  var div = doc.createElement('div');
+  var el = doc.createElement('input');
+
+  el.setAttribute('name', 'foo');
+  div.appendChild(el);
+
+  return !!div.innerHTML.match('foo');
+})();
+
+prototype.createElementWithAttributes = function(tagName, attributes) {
+  var attributesName;
+  if (canSetNameOnInputs) {
+    var element = this.document.createElement(tagName);
+    for (attributesName in attributes) {
+      element.setAttribute(attributesName, attributes[attributesName]);
+    }
+    return element;
+  } else {
+    var tagString = tagName;
+    for (attributesName in attributes) {
+      tagString += " " + attributesName + '="' + attributes[attributesName] + '"';
+    }
+    return this.document.createElement(tagString);
+  }
+};
 
 prototype.addClasses = addClasses;
 prototype.removeClasses = removeClasses;

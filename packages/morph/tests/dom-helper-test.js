@@ -26,6 +26,12 @@ test('#createElement', function(){
   equalHTML(node, '<div></div>');
 });
 
+test('#createElement with attributes', function(){
+  var node = dom.createElement('div', { "id" : "divid", "title" : "divtitle" });
+  equal(node.tagName, 'DIV');
+  equalHTML(node, '<div id="divid" title="divtitle"></div>');
+});
+
 test('#childAtIndex', function() {
   var node = dom.createElement('div');
 
