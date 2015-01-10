@@ -27,9 +27,9 @@ test('#createElement', function(){
 });
 
 test('#createElement with attributes', function(){
-  var node = dom.createElement('div', { "data-one" : 1, "data-two" : 2 });
+  var node = dom.createElement('div', { "id" : "divid", "title" : "divtitle" });
   equal(node.tagName, 'DIV');
-  equalHTML(node, '<div data-one="1" data-two="2"></div>');
+  equalHTML(node, '<div id="divid" title="divtitle"></div>');
 });
 
 test('#childAtIndex', function() {
