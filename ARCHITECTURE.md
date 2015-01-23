@@ -61,7 +61,7 @@ The above vanilla HB AST looks something like:
       Mustache: `onclick` params=[`"like"`]
       Content: '>Like</button> </p>'
 
-See [parser.js](packages/htmlbars-compiler/lib/parser.js)
+See [parser.js](packages/htmlbars-syntax/lib/parser.js)
 
 ### 2. Convert to HTMLBars AST
 
@@ -86,7 +86,7 @@ something like:
       Element tag='button' helpers=[Mustache(`onclick "like"`)]
         "Like"
 
-See [parser.js](packages/htmlbars-compiler/lib/parser.js) and 
+See [parser.js](packages/htmlbars-syntax/lib/parser.js) and 
 [ast.js](packages/htmlbars-compiler/lib/ast.js).
 
 ### 3. Build document fragment generator from HTMLbars AST
