@@ -404,7 +404,7 @@ test('#cloneNode deep', function(){
   equalHTML(node, '<div><span></span></div>');
 });
 
-test('dom node has empty text after cloning and ensuringBlankTextNode', function(){
+test('dom node has empty text after cloning and repairClonedNode', function(){
   var div = document.createElement('div');
 
   div.appendChild( document.createTextNode('') );
@@ -421,7 +421,7 @@ test('dom node has empty text after cloning and ensuringBlankTextNode', function
   equal(clonedDiv.childNodes[0].nodeType, 3);
 });
 
-test('dom node has empty start text after cloning and ensuringBlankTextNode', function(){
+test('dom node has empty start text after cloning and repairClonedNode', function(){
   var div = document.createElement('div');
 
   div.appendChild( document.createTextNode('') );
@@ -439,7 +439,7 @@ test('dom node has empty start text after cloning and ensuringBlankTextNode', fu
   equal(clonedDiv.childNodes[0].nodeType, 3);
 });
 
-test('dom node checked after cloning and ensuringChecked', function(){
+test('dom node checked after cloning and repairClonedNode', function(){
   var input = document.createElement('input');
 
   input.setAttribute('checked', 'checked');
@@ -453,6 +453,26 @@ test('dom node checked after cloning and ensuringChecked', function(){
 
   isCheckedInputHTML(clone, '<input checked="checked">');
   ok(clone.checked, 'clone is checked');
+});
+
+test('dom node has space text after cloning and repairClonedNode', function(){
+  var div = document.createElement('div');
+
+  div.appendChild( document.createTextNode('ohhi ') );
+  div.appendChild( document.createTextNode(' ') );
+  div.appendChild( document.createTextNode('') );
+
+  var clonedDiv = dom.cloneNode(div, true);
+
+  equal(clonedDiv.nodeType, 1);
+  // IE's native cloneNode drops blank string text
+  // nodes. Assert repairClonedNode brings back the blank
+  // text node.
+  dom.repairClonedNode(clonedDiv, [2]);
+  equal(clonedDiv.childNodes.length, 3);
+  equal(clonedDiv.childNodes[0].data, 'ohhi ');
+  equal(clonedDiv.childNodes[1].data, ' ');
+  equal(clonedDiv.childNodes[2].data, '');
 });
 
 if ('namespaceURI' in document.createElement('div')) {
