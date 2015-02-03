@@ -83,7 +83,7 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
 
   var blockParams = program.blockParams || [];
 
-  var templateSignature = 'context, env, contextualElement';
+  var templateSignature = 'context, env, options';
   if (blockParams.length > 0) {
     templateSignature += ', blockArguments';
   }
@@ -100,8 +100,11 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     indent+'    render: function render(' + templateSignature + ') {\n' +
     indent+'      var dom = env.dom;\n' +
     this.getHydrationHooks(indent + '      ', this.hydrationCompiler.hooks) +
+    indent+'      var contextualElement = options && options.contextualElement;\n' +
+    indent+'      var lastResult = options && options.lastResult;\n' +
     indent+'      dom.detectNamespace(contextualElement);\n' +
-    indent+'      var fragment = env.target;\n' +
+    indent+'      var fragment = lastResult ? lastResult.fragment : null;\n' +
+    indent+'      var morphs = lastResult ? lastResult.morphs : null;\n' +
     indent+'      if (!fragment && env.useFragmentCache && dom.canClone) {\n' +
     indent+'        if (this.cachedFragment === null) {\n' +
     indent+'          fragment = this.build(dom);\n' +
@@ -118,7 +121,7 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     indent+'        fragment = this.build(dom);\n' +
     indent+'      }\n' +
     hydrationProgram +
-    indent+'      return { fragment: fragment, morphs: morphs };\n' +
+    indent+'      return lastResult || { fragment: fragment, morphs: morphs };\n' +
     indent+'    }\n' +
     indent+'  };\n' +
     indent+'}())';
