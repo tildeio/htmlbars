@@ -122,7 +122,7 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     return indent+'      '+JSON.stringify(s);
   }).join(",\n");
 
-  var augmentContext = JSON.stringify(hydrationPrograms.augmentContext);
+  var locals = JSON.stringify(hydrationPrograms.locals);
 
   var templates = this.childTemplates.map(function(_, index) {
     return 'child' + index;
@@ -140,7 +140,7 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     indent+'    buildRenderNodes: ' + hydrationPrograms.createMorphsProgram + ',\n' +
     indent+'    statements: [\n' + statements + '\n' +
     indent+'    ],\n' +
-    indent+'    augmentContext: ' + augmentContext + ',\n' +
+    indent+'    locals: ' + locals + ',\n' +
     indent+'    templates: [' + templates + ']\n' +
     indent+'  };\n' +
     indent+'}())';
