@@ -1,0 +1,8 @@
+{
+  "name": "htmlbars",
+  "version": "BOWER_VERSION_STRING_PLACEHOLDER",
+  "license": "MIT",
+  "ignore": [],
+  "dependencies": {},
+  "devDependencies": {}
+}
