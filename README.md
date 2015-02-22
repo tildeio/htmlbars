@@ -1,4 +1,6 @@
-# Status [![Build Status](https://travis-ci.org/tildeio/htmlbars.png)](https://travis-ci.org/tildeio/htmlbars)
+# Status [![Build Status](https://travis-ci.org/tildeio/htmlbars.png?branch=master)](https://travis-ci.org/tildeio/htmlbars) [![Sauce Test Status](https://saucelabs.com/buildstatus/htmlbars-ci)](https://saucelabs.com/u/htmlbars-ci)
+
+[![Join the chat at https://gitter.im/tildeio/htmlbars](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tildeio/htmlbars?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 HTMLBars is a layer built on top of the Handlebars template compiler.
 
@@ -34,11 +36,17 @@ info on how HTMLBars is structured and its approach to efficiently building / em
 
 # How to Run Tests
 
-## In Node
+## Via Ember CLI
+
+1. Run: `ember test --server`
+
+Ember CLI is a CI tool, so it will run tests as you change files.
+
+## On the console with PhantomJS
 
 1. Run `npm test`.
 
-## In the browser
+## In a browser
 
 1. Run `npm start`.
 2. Visit <http://localhost:4200/test>.
