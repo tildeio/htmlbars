@@ -98,6 +98,7 @@ helpers.upcase = function(params) {
 };
 
 helpers['format-person'] = function(params) {
+  var person = params[0];
   return person.salutation + '. ' + person.first + ' ' + person.last;
 };
 ```
@@ -123,7 +124,7 @@ reference to the runtime) as well as all parameters as unevaluated
 references.
 
 Keywords can be used to implement low-level behaviors that control the
-DOM being built, but with great power comes with great responsibility.
+DOM being built, but with great power comes great responsibility.
 Since a keyword has the ability to influence the ambient environment and
 the DOM, it must maintain the idempotence invariant.
 
