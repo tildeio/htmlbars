@@ -1,4 +1,4 @@
-import Morph from "./morph-range";
+import Morph from "../morph-range";
 import AttrMorph from "./morph-attr";
 import {
   buildHTMLDOM,
@@ -103,6 +103,15 @@ function buildSVGDOM(html, dom){
   var div = dom.document.createElement('div');
   div.innerHTML = '<svg>'+html+'</svg>';
   return div.firstChild.childNodes;
+}
+
+function ElementMorph(element, dom, namespace) {
+  this.element = element;
+  this.dom = dom;
+  this.namespace = namespace;
+
+  this.state = {};
+  this.isDirty = true;
 }
 
 /*
@@ -346,6 +355,10 @@ prototype.createAttrMorph = function(element, attrName, namespace){
   return new AttrMorph(element, attrName, this, namespace);
 };
 
+prototype.createElementMorph = function(element, namespace){
+  return new ElementMorph(element, this, namespace);
+};
+
 prototype.createUnsafeAttrMorph = function(element, attrName, namespace){
   var morph = this.createAttrMorph(element, attrName, namespace);
   morph.escaped = false;
@@ -357,7 +370,7 @@ prototype.createMorph = function(parent, start, end, contextualElement){
     throw new Error("Cannot pass a fragment as the contextual element to createMorph");
   }
 
-  if (!contextualElement && parent.nodeType === 1) {
+  if (!contextualElement && parent && parent.nodeType === 1) {
     contextualElement = parent;
   }
   var morph = new Morph(this, contextualElement);
