@@ -15,3 +15,5 @@ before_script:
 after_script:
   - sleep 10
   - killall sc
+after_success:
+  - "./bin/bower_build"

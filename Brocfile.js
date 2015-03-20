@@ -7,7 +7,7 @@ var removeFile = require('broccoli-file-remover');
 var transpileES6 = require('broccoli-es6-module-transpiler');
 var jsHint = require('broccoli-jshint');
 var handlebarsInlinedTrees = require('./build-support/handlebars-inliner');
-var getVersion = require('git-repo-version');
+var gitVersion = require('git-repo-version');
 
 var packages = require('./packages');
 
@@ -18,11 +18,11 @@ var demos = new Funnel('demos', {
   destDir: '/demos'
 });
 
-var ES6Tokenizer = new Funnel(bower+'/simple-html-tokenizer/lib/');
+var ES6Tokenizer = new Funnel(bower + '/simple-html-tokenizer/lib/');
 dependableTrees['simple-html-tokenizer'] = ES6Tokenizer;
 
 var npm = 'node_modules';
-var MorphRange = new Funnel(npm+'/morph-range/lib/');
+var MorphRange = new Funnel(npm + '/morph-range/lib/');
 dependableTrees['morph-range'] = MorphRange;
 
 dependableTrees['syntax-handlebars-inliner'] = handlebarsInlinedTrees.syntax;
@@ -53,7 +53,7 @@ function getPackageTrees(packageName, dependencies) {
   // main lib file
   libTrees.push(getPackageLibTree(packageName));
   // dependencies of lib
-  for (var i=0;i<(dependencies.lib || []).length;i++) {
+  for (var i = 0; i < (dependencies.lib || []).length; i++) {
     var depName = dependencies.lib[i];
     libTrees.push(getDependencyTree(depName));
   }
@@ -65,7 +65,7 @@ function getPackageTrees(packageName, dependencies) {
     destDir: '/' + packageName + '-tests'
   }));
   // dependencies of tests
-  for (var i=0;i<(dependencies.test || []).length;i++) {
+  for (var i = 0; i < (dependencies.test || []).length; i++) {
     var depName = dependencies.test[i];
     testTrees.push(getDependencyTree(depName));
   }
@@ -78,12 +78,12 @@ function getPackageTrees(packageName, dependencies) {
 
 var test = new Funnel('tests', {
   srcDir: '/',
-  files: [ 'index.html', 'packages-config.js' ],
+  files: ['index.html', 'packages-config.js'],
   destDir: '/tests'
 });
 
 test = replace(test, {
-  files: [ 'tests/packages-config.js' ],
+  files: ['tests/packages-config.js'],
   pattern: {
     match: /\{\{PACKAGES_CONFIG\}\}/g,
     replacement: JSON.stringify(packages, null, 2)
@@ -92,7 +92,7 @@ test = replace(test, {
 
 var loader = new Funnel(bower, {
   srcDir: '/loader',
-  files: [ 'loader.js' ],
+  files: ['loader.js'],
   destDir: '/assets'
 });
 
@@ -103,7 +103,7 @@ var qunit = new Funnel(bower, {
 
 var cliSauce = new Funnel('./node_modules/ember-cli-sauce', {
   srcDir: '/vendor',
-  files: [ 'export-test-results.js' ],
+  files: ['export-test-results.js'],
   destDir: '/tests'
 });
 
@@ -137,8 +137,8 @@ for (var packageName in packages.dependencies) {
   });
   trees.push(pickedCjsLib);
   var pickedCjsMain = new Funnel(transpiledCjsLib, {
-    srcDir: packageName+'.js',
-    destDir: '/cjs/' + packageName+'.js'
+    srcDir: packageName + '.js',
+    destDir: '/cjs/' + packageName + '.js'
   });
   trees.push(pickedCjsMain);
 
@@ -148,7 +148,7 @@ for (var packageName in packages.dependencies) {
   var jsHintLibTree = new Funnel(libTree, {
     include: [new RegExp(packageName), new RegExp(packageName + '.+\.js$')],
     exclude: [/htmlbars-(syntax|util)\/handlebars/],
-    destDir: packageName+'-tests/'
+    destDir: packageName + '-tests/'
   });
   jsHintLibTree = removeFile(jsHintLibTree, {
     srcFile: 'htmlbars-runtime.js' // Uses ES6 `module` syntax. Breaks jsHint
@@ -167,16 +167,46 @@ for (var packageName in packages.dependencies) {
   // CJS tests
   var transpiledCjsTests = transpileES6(mergeTrees(testTrees), { type: 'cjs' });
   var movedCjsTests = new Funnel(transpiledCjsTests, {
-    srcDir: packageName+'-tests/',
-    destDir: '/cjs/'+packageName+"-tests/"
+    srcDir: packageName + '-tests/',
+    destDir: '/cjs/' + packageName + '-tests/'
   });
   trees.push(movedCjsTests);
 }
 
-trees = replace(mergeTrees(trees, {overwrite: true}), {
-  files: [ 'es6/htmlbars.js', 'es6/htmlbars-compiler/template-compiler.js', 'amd/htmlbars.js', 'cjs/htmlbars.js' ],
+// Bower
+var generatedBowerConfig = new Funnel('build-support', {
+  srcDir: '/',
+  destDir: '/',
+  files: ['bower.json']
+});
+generatedBowerConfig = replace(generatedBowerConfig, {
+  files: ['bower.json'],
+  pattern: {
+    match: /BOWER_VERSION_STRING_PLACEHOLDER/,
+    replacement: function() {
+      // remove leading `v` (since by default our tags use a `v` prefix)
+      return gitVersion().replace(/^v/, '');
+    }
+  }
+});
+trees.push(generatedBowerConfig);
+
+// Globals lib
+var globalizedBuildSupport = new Funnel('build-support', {
+  srcDir: '/',
+  files: ['iife-start.js', 'globalize.js', 'iife-stop.js'],
+  destDir: '/'
+});
+var globalsLib = concatFiles(mergeTrees([globalizedBuildSupport].concat(trees), { overwrite: true }), {
+  inputFiles: ['iife-start.js', 'assets/loader.js', 'amd/htmlbars.amd.js', 'globalize.js', 'iife-stop.js'],
+  outputFile: '/globals/htmlbars.js'
+});
+trees.push(globalsLib);
+
+trees = replace(mergeTrees(trees, { overwrite: true }), {
+  files: ['es6/htmlbars.js', 'es6/htmlbars-compiler/template-compiler.js', 'amd/htmlbars.js', 'cjs/htmlbars.js'],
   patterns: [
-    { match: /VERSION_STRING_PLACEHOLDER/g, replacement: getVersion() }
+    { match: /VERSION_STRING_PLACEHOLDER/g, replacement: gitVersion() }
   ]
 });
 
