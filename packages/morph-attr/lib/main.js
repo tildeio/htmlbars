@@ -44,6 +44,10 @@ function AttrMorph(element, attrName, domHelper, namespace) {
   }
 }
 
+AttrMorph.prototype.destroy = function destroy() {
+  // do nothing
+};
+
 AttrMorph.prototype.setContent = function (value) {
   if (this.escaped) {
     var sanitized = sanitizeAttributeValue(this.domHelper, this.element, this.attrName, value);
