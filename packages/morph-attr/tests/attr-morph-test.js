@@ -174,3 +174,10 @@ test("embed src as data uri is sanitized", function() {
         'unsafe:data:image/svg+xml;base64,PH',
         'attribute is escaped');
 });
+
+test("implements destroy", function(){
+  var element = domHelper.createElement('div');
+  var morph = domHelper.createAttrMorph(element, 'id');
+  ok(morph.destroy);
+  equal(typeof morph.destroy, 'function');
+});
