@@ -41,6 +41,9 @@ FragmentJavaScriptCompiler.prototype.createElement = function(tagName) {
   this.source.push(this.indent+'  var '+el+' = dom.createElement('+string(tagName)+');\n');
   if (svgHTMLIntegrationPoints[tagName]) {
     this.pushNamespaceFrame({namespace: null, depth: this.depth});
+    // reset the namespace in cases like when using manualElement
+    // this will cause dom.setNamespace to be called twice
+    this.source.push(this.indent+'  dom.setNamespace(null);\n');
   }
 };
 
