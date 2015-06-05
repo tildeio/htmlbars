@@ -184,6 +184,22 @@ test('#setProperty', function(){
   node = dom.createElement('div');
   dom.setProperty(node, 'style', 'color: red;');
   equalHTML(node, '<div style="color: red;"></div>');
+
+  // Tests for browser quirk corrections
+
+  [ 
+    { tagName: 'button', key: 'type' },
+    { tagName: 'input', key: 'type' },
+    { tagName: 'input', key: 'list' }
+  ]
+    .forEach(function (item) {
+      node = dom.createElement(item.tagName);
+      dom.setProperty(node, item.key, 'x-foo-bar');
+      // The property may or may not be set depending
+      // on the browser. We only care that the attribute
+      // is actually set, in this test
+      equal(node.getAttribute(item.key), 'x-foo-bar');
+    });
 });
 
 test('#setProperty removes attr with undefined', function(){
