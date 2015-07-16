@@ -202,6 +202,18 @@ test("Simple embedded block helpers", function() {
   ]));
 });
 
+test("Multiline blocks preserve newlines", function() {
+  var t = "{{#each}}\n  <li>foo</li>\n{{/each}}";
+  ast = parse(t);
+  astEqual(t, b.program([
+    b.block(b.path('each'), [], b.hash(), b.program([
+      b.text('\n  '),
+      b.element('li', [], [], [b.text('foo')]),
+      b.text('\n')
+    ]))
+  ]));
+});
+
 test("Involved block helper", function() {
   var t = '<p>hi</p> content {{#testing shouldRender}}<p>Appears!</p>{{/testing}} more <em>content</em> here';
   astEqual(t, b.program([

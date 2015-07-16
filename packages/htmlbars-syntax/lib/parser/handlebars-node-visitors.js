@@ -109,7 +109,7 @@ export default {
     }
 
     this.tokenizer.line = this.tokenizer.line + changeLines;
-    this.tokenizer.tokenizePart(content.value);
+    this.tokenizer.tokenizePart(content.original);
     this.tokenizer.flushData();
   },
 
