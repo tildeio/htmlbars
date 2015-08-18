@@ -47,3 +47,15 @@ test('options are not required for `compile`', function () {
 
   ok(template.meta, 'meta is present in template, even if empty');
 });
+
+test('templates get unique ids', function() {
+  var template1 = compile('{{#if foo}}hello{{/if}}');
+
+  ok(typeof template1.raw.id === 'string', 'the top-level template has an id');
+  ok(typeof template1.raw.templates[0].id === 'string', 'nested templates have ids');
+
+  var template2 = compile('Another template');
+  ok(typeof template2.raw.id === 'string', 'the top-level template has an id');
+
+  notEqual(template1.raw.id, template2.raw.id, 'different templates should have different ids');
+});

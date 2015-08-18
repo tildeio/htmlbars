@@ -3,7 +3,7 @@ import FragmentJavaScriptCompiler from './fragment-javascript-compiler';
 import HydrationOpcodeCompiler from './hydration-opcode-compiler';
 import HydrationJavaScriptCompiler from './hydration-javascript-compiler';
 import TemplateVisitor from "./template-visitor";
-import { processOpcodes } from "./utils";
+import { processOpcodes, generateId } from "./utils";
 import { repeat } from "../htmlbars-util/quoting";
 import { map } from "../htmlbars-util/array-utils";
 
@@ -110,6 +110,7 @@ TemplateCompiler.prototype.endProgram = function(program, programDepth) {
     indent+'  return {\n' +
     this.buildMeta(indent+'    ', program) +
     indent+'    isEmpty: ' + (program.body.length ? 'false' : 'true') + ',\n' +
+    indent+'    id: "' + generateId() + '",\n' +
     indent+'    arity: ' + blockParams.length + ',\n' +
     indent+'    cachedFragment: null,\n' +
     indent+'    hasRendered: false,\n' +
