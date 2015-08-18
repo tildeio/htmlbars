@@ -348,7 +348,7 @@ function _rehydrateNode(owner, renderNode, dom, context, cache) {
     case 'range':
       element = elementFromId(dom, context, renderNode.parentNode, cache);
       node = dom.createMorphAt(element, renderNode.firstNode, renderNode.lastNode);
-      node.lastYielded = LastYielded.fromTemplateId(renderNode.templateId);
+      node.lastYielded = new LastYielded(renderNode.templateId);
       node.childNodes = renderNode.childNodes && renderNode.childNodes.map(childNode => _rehydrateNode(node, childNode, dom, context, cache));
       break;
   }
@@ -395,7 +395,7 @@ function _serializeNode(env, renderNode, serializationContext) {
       type: 'range',
       childNodes: renderNode.childNodes && renderNode.childNodes.map(childNode => _serializeNode(env, childNode, serializationContext)),
       parentNode: idFromElement(dom, parent, serializationContext),
-      templateId: renderNode.lastYielded && env.hooks.serializeLastYielded(env, renderNode),
+      templateId: renderNode.lastYielded && renderNode.lastYielded.templateId,
       firstNode,
       lastNode
     };
@@ -441,18 +441,11 @@ function idFromElement(dom, element, serializationContext) {
   return id;
 }
 
-export function LastYielded(self, template, shadowTemplate, templateId) {
-  this.self = self;
-  this.template = template;
-  this.shadowTemplate = shadowTemplate;
+export function LastYielded(templateId) {
   this.templateId = templateId;
 }
 
-LastYielded.fromTemplateId = function(templateId)  {
-  return new LastYielded(null, null, null, templateId);
-};
-
 LastYielded.prototype.isStableTemplate = function(nextTemplate) {
-  return !this.shadowTemplate && nextTemplate === this.template;
+  return nextTemplate.id === this.templateId;
 };
 

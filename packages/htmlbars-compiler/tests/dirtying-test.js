@@ -650,7 +650,7 @@ test("it is possible to rehydrate a template with blocks", function() {
   let childMorph2 = env.dom.createMorphAt(span, 0, 0);
 
   let obj = { bool: true, name: "Yehuda" };
-  childMorph1.lastYielded = new LastYielded(obj, template.raw.templates[0], null);
+  childMorph1.lastYielded = new LastYielded(template.raw.templates[0].id);
 
   rootMorph.childNodes = [childMorph1];
   childMorph1.childNodes = [childMorph2];
@@ -691,14 +691,6 @@ test("it is possible to serialize a render node tree", function() {
 });
 
 test("it is possible to serialize a render node tree with recursive templates", function() {
-  env.hooks.rehydrateLastYielded = function(env, morph) {
-    morph.lastYielded.template = morph.lastYielded.templateId;
-  };
-
-  env.hooks.serializeLastYielded = function(env, morph) {
-    return morph.lastYielded.template;
-  };
-
   let template = compile('<p title="{{title}}">{{#if bool}}<span>{{name}}</span>{{/if}}</p>');
   let obj = { title: 'chancancode', name: 'Godfrey', bool: true };
   let result = template.render(obj, env);

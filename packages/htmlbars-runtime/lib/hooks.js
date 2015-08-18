@@ -79,7 +79,7 @@ import { linkParams } from "../htmlbars-util/morph-utils";
 */
 
 export function wrap(template) {
-  if (template === null) { return null;  }
+  if (template === null) { return null; }
 
   return {
     meta: template.meta,
@@ -140,10 +140,9 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
 
     var scope = parentScope;
 
-    if (morph.lastYielded && morph.lastYielded.isStableTemplate(template)) {
+    if (morph.lastResult && morph.lastYielded.isStableTemplate(template)) {
       return morph.lastResult.revalidateWith(env, undefined, self, blockArguments, visitor);
     }
-
 
     // Check to make sure that we actually **need** a new scope, and can't
     // share the parent scope. Note that we need to move this check into
@@ -153,17 +152,14 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
       scope = env.hooks.createChildScope(parentScope);
     }
 
-    if (morph.lastYielded && morph.lastYielded.templateId) {
-      env.hooks.rehydrateLastYielded(env, morph);
-
-      if (morph.lastYielded.isStableTemplate(template)) {
-        let renderResult = RenderResult.rehydrate(env, scope, template, { renderNode: morph, self, blockArguments });
-        renderResult.render();
-        return;
-      }
+    // rehydration
+    if (morph.lastYielded && morph.lastYielded.isStableTemplate(template)) {
+      let renderResult = RenderResult.rehydrate(env, scope, template, { renderNode: morph, self, blockArguments });
+      renderResult.render();
+      return;
     }
 
-    morph.lastYielded = new LastYielded(self, template, null);
+    morph.lastYielded = new LastYielded(template.id);
 
     // Render the template that was selected by the helper
     render(template, env, scope, { renderNode: morph, self: self, blockArguments: blockArguments });
@@ -1048,8 +1044,6 @@ export default {
   linkRenderNode: linkRenderNode,
   partial: partial,
   subexpr: subexpr,
-  rehydrateLastYielded: null,
-  serializeLastYielded: null,
 
   // fundamental hooks with good default behavior
   bindBlock: bindBlock,
