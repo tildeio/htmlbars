@@ -1,6 +1,6 @@
 import render from "./render";
 import MorphList from "../morph-range/morph-list";
-import { createChildMorph } from "./render";
+import { createChildMorph, RenderResult, LastYielded } from "./render";
 import { keyLength, shallowCopy } from "../htmlbars-util/object-utils";
 import { validateChildMorphs } from "../htmlbars-util/morph-utils";
 import { RenderState, clearMorph, clearMorphList, renderAndCleanup } from "../htmlbars-util/template-utils";
@@ -145,9 +145,10 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
 
     var scope = parentScope;
 
-    if (morph.lastYielded && isStableTemplate(template, morph.lastYielded)) {
+    if (morph.lastYielded && morph.lastYielded.isStableTemplate(template)) {
       return morph.lastResult.revalidateWith(env, undefined, self, blockArguments, visitor);
     }
+
 
     // Check to make sure that we actually **need** a new scope, and can't
     // share the parent scope. Note that we need to move this check into
@@ -157,7 +158,17 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
       scope = env.hooks.createChildScope(parentScope);
     }
 
-    morph.lastYielded = { self: self, template: template, shadowTemplate: null };
+    if (morph.lastYielded && morph.lastYielded.templateId) {
+      env.hooks.rehydrateLastYielded(env, morph);
+
+      if (morph.lastYielded.isStableTemplate(template)) {
+        let renderResult = RenderResult.rehydrate(env, scope, template, { renderNode: morph, self, blockArguments });
+        renderResult.render();
+        return;
+      }
+    }
+
+    morph.lastYielded = new LastYielded(self, template, null);
 
     // Render the template that was selected by the helper
     render(template, env, scope, { renderNode: morph, self: self, blockArguments: blockArguments });
@@ -275,10 +286,6 @@ function yieldItem(template, env, parentScope, morph, renderState, visitor) {
   };
 }
 
-function isStableTemplate(template, lastYielded) {
-  return !lastYielded.shadowTemplate && template === lastYielded.template;
-}
-
 function yieldInShadowTemplate(template, env, parentScope, morph, renderState, visitor) {
   var hostYield = hostYieldWithShadowTemplate(template, env, parentScope, morph, renderState, visitor);
 
@@ -300,7 +307,7 @@ export function hostYieldWithShadowTemplate(template, env, parentScope, morph, r
     blockToYield.arity = template.arity;
     env.hooks.bindBlock(env, shadowScope, blockToYield);
 
-    morph.lastYielded = { self: self, template: template, shadowTemplate: shadowTemplate };
+    morph.lastYielded = new LastYielded(self, template, shadowTemplate);
 
     // Render the shadow template with the block available
     render(shadowTemplate.raw, env, shadowScope, { renderNode: morph, self: self, blockArguments: blockArguments });
@@ -1094,6 +1101,8 @@ export default {
   linkRenderNode: linkRenderNode,
   partial: partial,
   subexpr: subexpr,
+  rehydrateLastYielded: null,
+  serializeLastYielded: null,
 
   // fundamental hooks with good default behavior
   bindBlock: bindBlock,

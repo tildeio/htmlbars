@@ -1,5 +1,5 @@
 import { compile } from "../htmlbars-compiler/compiler";
-import { manualElement } from "../htmlbars-runtime/render";
+import { RenderResult, LastYielded, manualElement } from "../htmlbars-runtime/render";
 import { hostBlock } from "../htmlbars-runtime/hooks";
 import render from "../htmlbars-runtime/render";
 import { blockFor } from "../htmlbars-util/template-utils";
@@ -7,6 +7,7 @@ import defaultHooks from "../htmlbars-runtime/hooks";
 import { merge } from "../htmlbars-util/object-utils";
 import DOMHelper from "../dom-helper";
 import { equalTokens } from "../htmlbars-test-helpers";
+import { rehydrateNode, serializeNode } from "../htmlbars-runtime/render";
 
 var hooks, helpers, partials, env;
 
@@ -729,4 +730,115 @@ test("The invoke helper hook can instruct the runtime to link the result", funct
 
   equalTokens(result.fragment, "24");
   equal(invokeCount, 1);
+});
+
+test("it is possible to synthesize a simple fragment and render node and pass it to the rendering process", function() {
+  let template = compile("<p>{{name}}</p>");
+
+  let p = env.dom.createElement('p');
+  env.dom.appendText(p, 'Godfrey');
+
+  let rootMorph = env.dom.createMorph(null, p, p);
+  let childMorph = env.dom.createMorphAt(p, 0, 0);
+
+  rootMorph.childNodes = [childMorph];
+
+  let scope = env.hooks.createFreshScope();
+  let obj = { name: "Yehuda" };
+  let result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: rootMorph, self: obj });
+
+  let original = p.firstChild;
+  result.render();
+
+  strictEqual(p.firstChild, original, "The text node remained stable");
+  equalTokens(p, "<p>Yehuda</p>");
+});
+
+test("it is possible to rehydrate a template with blocks", function() {
+  let template = compile("<p>{{#if bool}}<span>{{name}}</span>{{/if}}</p>");
+
+  let p = env.dom.createElement('p');
+  let span = env.dom.appendChild(p, env.dom.createElement('span'));
+  env.dom.appendText(span, 'Godfrey');
+
+  let rootMorph = env.dom.createMorph(null, p, p);
+  let childMorph1 = env.dom.createMorphAt(p, 0, 0);
+  let childMorph2 = env.dom.createMorphAt(span, 0, 0);
+
+  let obj = { bool: true, name: "Yehuda" };
+  childMorph1.lastYielded = new LastYielded(obj, template.raw.templates[0], null);
+
+  rootMorph.childNodes = [childMorph1];
+  childMorph1.childNodes = [childMorph2];
+
+  let scope = env.hooks.createFreshScope();
+  let result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: rootMorph, self: obj });
+
+  let childResult = RenderResult.rehydrate(env, scope, template.raw.templates[0], { renderNode: childMorph1, self: obj });
+  childMorph1.lastResult = childResult;
+
+  let original = p.firstChild;
+  result.render();
+
+  strictEqual(p.firstChild, original, "The text node remained stable");
+  equalTokens(p, "<p><span>Yehuda</span></p>");
+});
+
+test("it is possible to serialize a render node tree", function() {
+  let template = compile('<p title="{{title}}">{{name}}</p>');
+  let obj = { title: 'chancancode', name: 'Godfrey' };
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p title="chancancode">Godfrey</p>');
+
+  let original = result.fragment.firstChild;
+  let newRoot = env.dom.createMorph(null, original, original);
+  newRoot.ownerNode = newRoot;
+  let node = rehydrateNode(serializeNode(env, result.root), newRoot);
+
+  let scope = env.hooks.createFreshScope();
+
+  result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: node, self: obj });
+
+  result.render();
+
+  strictEqual(result.root.firstNode, original);
+  equalTokens(result.root.firstNode, '<p title="chancancode">Godfrey</p>');
+});
+
+test("it is possible to serialize a render node tree with recursive templates", function() {
+  env.hooks.rehydrateLastYielded = function(env, morph) {
+    morph.lastYielded.template = morph.lastYielded.templateId;
+  };
+
+  env.hooks.serializeLastYielded = function(env, morph) {
+    return morph.lastYielded.template;
+  };
+
+  let template = compile('<p title="{{title}}">{{#if bool}}<span>{{name}}</span>{{/if}}</p>');
+  let obj = { title: 'chancancode', name: 'Godfrey', bool: true };
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p title="chancancode"><span>Godfrey</span></p>');
+
+  let original = result.fragment.firstChild;
+  let span = original.firstChild;
+  let godfrey = span.firstChild;
+
+  let newRoot = env.dom.createMorph(null, original, original);
+  newRoot.ownerNode = newRoot;
+  let node = rehydrateNode(serializeNode(env, result.root), newRoot);
+
+  let scope = env.hooks.createFreshScope();
+
+  result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: node, self: obj });
+
+  result.render();
+
+  let newNode = result.root.firstNode;
+  strictEqual(newNode, original, "the <p> is the same");
+  strictEqual(newNode.firstChild, span, "the <span> is the same");
+  strictEqual(newNode.firstChild.firstChild, godfrey, "the text node is the same");
+
+  equalTokens(newNode, '<p title="chancancode"><span>Godfrey</span></p>');
 });
