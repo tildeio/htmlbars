@@ -747,3 +747,29 @@ test("it is possible to serialize a template with adjacent text nodes", function
 
   equalTokens(result.root.firstNode, '<p>Mr. Yehuda Katz</p>');
 });
+
+test("it is possible to serialize empty text nodes", function() {
+  let template = compile("<p></p>");
+  let obj = {};
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p></p>');
+  env.dom.appendText(result.fragment.firstChild, '');
+
+  let serializedChildNodes = prepareAndSerializeNode(env, result.root);
+  let serialized = result.fragment.cloneNode(true).firstChild;
+
+  // TODO: actually serialize and parse this, so it works with SimpleDOM and is more accurate
+  // at the moment, this is a sanity check that we didn't leave any adjacent text nodes
+  // around.
+  serialized.normalize();
+
+  let newRoot = env.dom.createMorph(null, serialized, serialized);
+
+  let newNode = rehydrateNode(serializedChildNodes, newRoot);
+
+  let p = newNode.firstNode;
+  equal(p.childNodes.length, 1, "There is one child node");
+  equal(p.childNodes[0].nodeType, 3, "It's a text node");
+  equal(p.childNodes[0].nodeValue, '', "An empty text node");
+});

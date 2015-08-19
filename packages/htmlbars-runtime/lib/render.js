@@ -331,7 +331,7 @@ export function getCachedFragment(template, env) {
 export function rehydrateNode(serializedNodes, renderNode) {
   let dom = renderNode.domHelper;
   let context = renderNode.firstNode.parentNode;
-  dom.restoreAdjacentTextNodes(context);
+  dom.restoreTextNodes(context);
   let cache = Object.create(null);
 
   renderNode.childNodes = serializedNodes.map(childNode => _rehydrateNode(renderNode, childNode, dom, context, cache));
@@ -373,7 +373,7 @@ export function prepareAndSerializeNode(env, renderNode) {
   let serializationContext = { id: 0 };
 
   let serialized = renderNode.childNodes.map(childNode => _serializeNode(env, childNode, serializationContext));
-  env.dom.preserveAdjacentTextNodes(renderNode.firstNode.parentNode);
+  env.dom.preserveTextNodes(renderNode.firstNode.parentNode);
   return serialized;
 
   //return [{

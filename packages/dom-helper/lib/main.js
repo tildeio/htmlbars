@@ -552,9 +552,9 @@ prototype.parseHTML = function(html, contextualElement) {
 
 const SHOW_TEXT = 4;
 
-prototype.preserveAdjacentTextNodes = function(root) {
+prototype.preserveTextNodes = function(root) {
   let iterator = this.document.createNodeIterator(root, SHOW_TEXT, function(node) {
-    return node.previousSibling && node.previousSibling.nodeType === 3;
+    return node.nodeValue === '' || (node.previousSibling && node.previousSibling.nodeType === 3);
   });
 
   let node;
@@ -562,17 +562,32 @@ prototype.preserveAdjacentTextNodes = function(root) {
   /*jshint boss:true*/
   while (node = iterator.nextNode()) {
     let element = this.createElement('script');
-    this.setAttribute(element, 'data-hbs-split', '');
-    node.parentNode.insertBefore(element, node);
+
+    if (node.nodeValue === '') {
+      this.setAttribute(element, 'data-hbs', 'boundary');
+      node.parentNode.replaceChild(element, node);
+    } else {
+      this.setAttribute(element, 'data-hbs', 'separator');
+      node.parentNode.insertBefore(element, node);
+    }
   }
 };
 
-prototype.restoreAdjacentTextNodes = function(root) {
-  let elements = root.querySelectorAll('script[data-hbs-split]');
+prototype.restoreTextNodes = function(root) {
+  let elements = root.querySelectorAll('script[data-hbs]');
 
   for (let i=0, l=elements.length; i<l; i++) {
     let element = elements[i];
-    element.parentNode.removeChild(element);
+
+    switch (this.getAttribute(element, 'data-hbs')) {
+      case 'boundary':
+        element.parentNode.replaceChild(this.createTextNode(''), element);
+        break;
+
+      case 'separator':
+        element.parentNode.removeChild(element);
+        break;
+    }
   }
 };
 
