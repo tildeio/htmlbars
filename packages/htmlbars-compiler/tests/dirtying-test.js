@@ -1,5 +1,5 @@
 import { compile } from "../htmlbars-compiler/compiler";
-import { manualElement } from "../htmlbars-runtime/render";
+import { RenderResult, LastYielded, manualElement } from "../htmlbars-runtime/render";
 import { hostBlock } from "../htmlbars-runtime/hooks";
 import render from "../htmlbars-runtime/render";
 import { blockFor } from "../htmlbars-util/template-utils";
@@ -7,6 +7,7 @@ import defaultHooks from "../htmlbars-runtime/hooks";
 import { merge } from "../htmlbars-util/object-utils";
 import DOMHelper from "../dom-helper";
 import { equalTokens } from "../htmlbars-test-helpers";
+import { rehydrateNode, prepareAndSerializeNode } from "../htmlbars-runtime/render";
 
 var hooks, helpers, partials, env;
 
@@ -102,122 +103,6 @@ test("a simple implementation of a dirtying rerender without inverse", function(
 
   result.rerender();
   equalTokens(result.fragment, '<div><p>hello world</p></div>', "If the condition is false, the morph becomes empty");
-});
-
-test("a dirtying rerender using `yieldIn`", function() {
-  var component = compile("<p>{{yield}}</p>");
-  var template = compile("<div><simple-component>{{title}}</simple-component></div>");
-
-  registerHelper("simple-component", function() {
-    return this.yieldIn(component);
-  });
-
-  var object = { title: "Hello world" };
-  var result = template.render(object, env);
-
-  var valueNode = getValueNode();
-  equalTokens(result.fragment, '<div><p>Hello world</p></div>');
-
-  result.rerender();
-
-  equalTokens(result.fragment, '<div><p>Hello world</p></div>');
-  strictEqual(getValueNode(), valueNode);
-
-  object.title = "Goodbye world";
-
-  result.rerender();
-  equalTokens(result.fragment, '<div><p>Goodbye world</p></div>');
-  strictEqual(getValueNode(), valueNode);
-
-  function getValueNode() {
-    return result.fragment.firstChild.firstChild.firstChild;
-  }
-});
-
-test("a dirtying rerender using `yieldIn` and self", function() {
-  var component = compile("<p><span>{{attrs.name}}</span>{{yield}}</p>");
-  var template = compile("<div><simple-component name='Yo! '>{{title}}</simple-component></div>");
-
-  registerHelper("simple-component", function(params, hash) {
-    return this.yieldIn(component, { attrs: hash });
-  });
-
-  var object = { title: "Hello world" };
-  var result = template.render(object, env);
-
-  var nameNode = getNameNode();
-  var titleNode = getTitleNode();
-  equalTokens(result.fragment, '<div><p><span>Yo! </span>Hello world</p></div>');
-
-  rerender();
-  equalTokens(result.fragment, '<div><p><span>Yo! </span>Hello world</p></div>');
-  assertStableNodes();
-
-  object.title = "Goodbye world";
-
-  rerender();
-  equalTokens(result.fragment, '<div><p><span>Yo! </span>Goodbye world</p></div>');
-  assertStableNodes();
-
-  function rerender() {
-    result.rerender();
-  }
-
-  function assertStableNodes() {
-    strictEqual(getNameNode(), nameNode);
-    strictEqual(getTitleNode(), titleNode);
-  }
-
-  function getNameNode() {
-    return result.fragment.firstChild.firstChild.firstChild.firstChild;
-  }
-
-  function getTitleNode() {
-    return result.fragment.firstChild.firstChild.firstChild.nextSibling;
-  }
-});
-
-test("a dirtying rerender using `yieldIn`, self and block args", function() {
-  var component = compile("<p>{{yield attrs.name}}</p>");
-  var template = compile("<div><simple-component name='Yo! ' as |key|><span>{{key}}</span>{{title}}</simple-component></div>");
-
-  registerHelper("simple-component", function(params, hash) {
-    return this.yieldIn(component, { attrs: hash });
-  });
-
-  var object = { title: "Hello world" };
-  var result = template.render(object, env);
-
-  var nameNode = getNameNode();
-  var titleNode = getTitleNode();
-  equalTokens(result.fragment, '<div><p><span>Yo! </span>Hello world</p></div>');
-
-  rerender();
-  equalTokens(result.fragment, '<div><p><span>Yo! </span>Hello world</p></div>');
-  assertStableNodes();
-
-  object.title = "Goodbye world";
-
-  rerender();
-  equalTokens(result.fragment, '<div><p><span>Yo! </span>Goodbye world</p></div>');
-  assertStableNodes();
-
-  function rerender() {
-    result.rerender();
-  }
-
-  function assertStableNodes() {
-    strictEqual(getNameNode(), nameNode);
-    strictEqual(getTitleNode(), titleNode);
-  }
-
-  function getNameNode() {
-    return result.fragment.firstChild.firstChild.firstChild.firstChild;
-  }
-
-  function getTitleNode() {
-    return result.fragment.firstChild.firstChild.firstChild.nextSibling;
-  }
 });
 
 test("block helpers whose template has a morph at the edge", function() {
@@ -644,7 +529,7 @@ QUnit.module("Manual elements", {
   beforeEach: commonSetup
 });
 
-test("Setting up a manual element renders and revalidates", function() {
+QUnit.skip("Setting up a manual element renders and revalidates", function() {
   hooks.keywords['manual-element'] = {
     render: function(morph, env, scope, params, hash, template, inverse, visitor) {
       var attributes = {
@@ -729,4 +614,162 @@ test("The invoke helper hook can instruct the runtime to link the result", funct
 
   equalTokens(result.fragment, "24");
   equal(invokeCount, 1);
+});
+
+test("it is possible to synthesize a simple fragment and render node and pass it to the rendering process", function() {
+  let template = compile("<p>{{name}}</p>");
+
+  let p = env.dom.createElement('p');
+  env.dom.appendText(p, 'Godfrey');
+
+  let rootMorph = env.dom.createMorph(null, p, p);
+  let childMorph = env.dom.createMorphAt(p, 0, 0);
+
+  rootMorph.childNodes = [childMorph];
+
+  let scope = env.hooks.createFreshScope();
+  let obj = { name: "Yehuda" };
+  let result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: rootMorph, self: obj });
+
+  let original = p.firstChild;
+  result.render();
+
+  strictEqual(p.firstChild, original, "The text node remained stable");
+  equalTokens(p, "<p>Yehuda</p>");
+});
+
+test("it is possible to rehydrate a template with blocks", function() {
+  let template = compile("<p>{{#if bool}}<span>{{name}}</span>{{/if}}</p>");
+
+  let p = env.dom.createElement('p');
+  let span = env.dom.appendChild(p, env.dom.createElement('span'));
+  env.dom.appendText(span, 'Godfrey');
+
+  let rootMorph = env.dom.createMorph(null, p, p);
+  let childMorph1 = env.dom.createMorphAt(p, 0, 0);
+  let childMorph2 = env.dom.createMorphAt(span, 0, 0);
+
+  let obj = { bool: true, name: "Yehuda" };
+  childMorph1.lastYielded = new LastYielded(template.raw.templates[0].id);
+
+  rootMorph.childNodes = [childMorph1];
+  childMorph1.childNodes = [childMorph2];
+
+  let scope = env.hooks.createFreshScope();
+  let result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: rootMorph, self: obj });
+
+  let childResult = RenderResult.rehydrate(env, scope, template.raw.templates[0], { renderNode: childMorph1, self: obj });
+  childMorph1.lastResult = childResult;
+
+  let original = p.firstChild;
+  result.render();
+
+  strictEqual(p.firstChild, original, "The text node remained stable");
+  equalTokens(p, "<p><span>Yehuda</span></p>");
+});
+
+test("it is possible to serialize a render node tree", function() {
+  let template = compile('<p title="{{title}}">{{name}}</p>');
+  let obj = { title: 'chancancode', name: 'Godfrey' };
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p title="chancancode">Godfrey</p>');
+
+  let original = result.fragment.firstChild;
+  let newRoot = env.dom.createMorph(null, original, original);
+  newRoot.ownerNode = newRoot;
+  let node = rehydrateNode(prepareAndSerializeNode(env, result.root), newRoot);
+
+  let scope = env.hooks.createFreshScope();
+
+  result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: node, self: obj });
+
+  result.render();
+
+  strictEqual(result.root.firstNode, original);
+  equalTokens(result.root.firstNode, '<p title="chancancode">Godfrey</p>');
+});
+
+test("it is possible to serialize a render node tree with recursive templates", function() {
+  let template = compile('<p title="{{title}}">{{#if bool}}<span>{{name}}</span>{{/if}}</p>');
+  let obj = { title: 'chancancode', name: 'Godfrey', bool: true };
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p title="chancancode"><span>Godfrey</span></p>');
+
+  let original = result.fragment.firstChild;
+  let span = original.firstChild;
+  let godfrey = span.firstChild;
+
+  let newRoot = env.dom.createMorph(null, original, original);
+  newRoot.ownerNode = newRoot;
+  let node = rehydrateNode(prepareAndSerializeNode(env, result.root), newRoot);
+
+  let scope = env.hooks.createFreshScope();
+
+  result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: node, self: obj });
+
+  result.render();
+
+  let newNode = result.root.firstNode;
+  strictEqual(newNode, original, "the <p> is the same");
+  strictEqual(newNode.firstChild, span, "the <span> is the same");
+  strictEqual(newNode.firstChild.firstChild, godfrey, "the text node is the same");
+
+  equalTokens(newNode, '<p title="chancancode"><span>Godfrey</span></p>');
+});
+
+test("it is possible to serialize a template with adjacent text nodes", function() {
+  let template = compile("<p>{{salutation}} {{name}}</p>");
+  let obj = { salutation: 'Mr.', name: 'Godfrey Chan' };
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p>Mr. Godfrey Chan</p>');
+
+  let serializedChildNodes = prepareAndSerializeNode(env, result.root);
+  let serialized = result.fragment.cloneNode(true).firstChild;
+
+  // TODO: actually serialize and parse this, so it works with SimpleDOM and is more accurate
+  // at the moment, this is a sanity check that we didn't leave any adjacent text nodes
+  // around.
+  serialized.normalize();
+
+  let newRoot = env.dom.createMorph(null, serialized, serialized);
+
+  let newNode = rehydrateNode(serializedChildNodes, newRoot);
+
+  let scope = env.hooks.createFreshScope();
+
+  obj.name = "Yehuda Katz";
+  result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: newNode, self: obj });
+  newRoot.ownerNode = newRoot;
+  result.render();
+
+  equalTokens(result.root.firstNode, '<p>Mr. Yehuda Katz</p>');
+});
+
+test("it is possible to serialize empty text nodes", function() {
+  let template = compile("<p></p>");
+  let obj = {};
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p></p>');
+  env.dom.appendText(result.fragment.firstChild, '');
+
+  let serializedChildNodes = prepareAndSerializeNode(env, result.root);
+  let serialized = result.fragment.cloneNode(true).firstChild;
+
+  // TODO: actually serialize and parse this, so it works with SimpleDOM and is more accurate
+  // at the moment, this is a sanity check that we didn't leave any adjacent text nodes
+  // around.
+  serialized.normalize();
+
+  let newRoot = env.dom.createMorph(null, serialized, serialized);
+
+  let newNode = rehydrateNode(serializedChildNodes, newRoot);
+
+  let p = newNode.firstNode;
+  equal(p.childNodes.length, 1, "There is one child node");
+  equal(p.childNodes[0].nodeType, 3, "It's a text node");
+  equal(p.childNodes[0].nodeValue, '', "An empty text node");
 });

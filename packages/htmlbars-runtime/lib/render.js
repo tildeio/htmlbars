@@ -28,7 +28,7 @@ export default function render(template, env, scope, options) {
   return renderResult;
 }
 
-function RenderResult(env, scope, options, rootNode, ownerNode, nodes, fragment, template, shouldSetContent) {
+export function RenderResult(env, scope, options, rootNode, ownerNode, nodes, fragment, template, shouldSetContent) {
   this.root = rootNode;
   this.fragment = fragment;
 
@@ -59,6 +59,7 @@ RenderResult.build = function(env, scope, template, options, contextualElement) 
     ownerNode = rootNode.ownerNode;
     shouldSetContent = true;
   } else {
+    // creating the root render node
     rootNode = dom.createMorph(null, fragment.firstChild, fragment.lastChild, contextualElement);
     ownerNode = rootNode;
     initializeNode(rootNode, ownerNode);
@@ -73,6 +74,14 @@ RenderResult.build = function(env, scope, template, options, contextualElement) 
 
   rootNode.childNodes = nodes;
   return new RenderResult(env, scope, options, rootNode, ownerNode, nodes, fragment, template, shouldSetContent);
+};
+
+RenderResult.rehydrate = function(env, scope, template, options) {
+  let rootNode = options.renderNode;
+  let ownerNode = rootNode.ownerNode;
+  let shouldSetContent = false;
+
+  return new RenderResult(env, scope, options, rootNode, ownerNode, rootNode.childNodes, null, template, shouldSetContent);
 };
 
 export function manualElement(tagName, attributes, _isEmpty) {
@@ -318,3 +327,131 @@ export function getCachedFragment(template, env) {
 
   return fragment;
 }
+
+export function rehydrateNode(serializedNodes, renderNode) {
+  let dom = renderNode.domHelper;
+  let context = renderNode.firstNode.parentNode;
+  dom.restoreTextNodes(context);
+  let cache = Object.create(null);
+
+  renderNode.childNodes = serializedNodes.map(childNode => _rehydrateNode(renderNode, childNode, dom, context, cache));
+  return renderNode;
+}
+
+function _rehydrateNode(owner, renderNode, dom, context, cache) {
+  let element, node;
+
+  switch (renderNode.type) {
+    case 'attr':
+      element = elementFromId(dom, context, renderNode.element, cache);
+      node = dom.createAttrMorph(element, renderNode.attrName);
+      break;
+    case 'range':
+      element = elementFromId(dom, context, renderNode.parentNode, cache);
+      node = dom.createMorphAt(element, renderNode.firstNode, renderNode.lastNode);
+      node.lastYielded = new LastYielded(renderNode.templateId);
+      node.childNodes = renderNode.childNodes && renderNode.childNodes.map(childNode => _rehydrateNode(node, childNode, dom, context, cache));
+      break;
+  }
+
+  initializeNode(node, owner);
+  return node;
+}
+
+function elementFromId(dom, context, id, cache) {
+  if (id in cache) {
+    return cache[id];
+  }
+
+  let element = context.querySelector(`[data-hbs-node="${id}"]`);
+  dom.removeAttribute(element, 'data-hbs-node');
+  cache[id] = element;
+  return element;
+}
+
+export function prepareAndSerializeNode(env, renderNode) {
+  let serializationContext = { id: 0 };
+
+  let serialized = renderNode.childNodes.map(childNode => _serializeNode(env, childNode, serializationContext));
+  env.dom.preserveTextNodes(renderNode.firstNode.parentNode);
+  return serialized;
+
+  //return [{
+    //type: 'attr',
+    //element: "0",
+    //attrName: 'title'
+  //}, {
+    //type: 'range',
+    //parentNode: "0",
+    //firstNode: 0,
+    //lastNode: 0
+  //}];
+}
+
+function _serializeNode(env, renderNode, serializationContext) {
+  let dom = env.dom;
+  if (renderNode instanceof dom.MorphClass) {
+    let parent = renderNode.firstNode.parentNode;
+    let { firstNode, lastNode } = parentOffsets(dom, parent, renderNode);
+
+    return {
+      type: 'range',
+      childNodes: renderNode.childNodes && renderNode.childNodes.map(childNode => _serializeNode(env, childNode, serializationContext)),
+      parentNode: idFromElement(dom, parent, serializationContext),
+      templateId: renderNode.lastYielded && renderNode.lastYielded.templateId,
+      firstNode,
+      lastNode
+    };
+  } else if (renderNode instanceof dom.AttrMorphClass) {
+    return {
+      type: 'attr',
+      element: idFromElement(dom, renderNode.element, serializationContext),
+      attrName: renderNode.attrName
+    };
+  }
+}
+
+function parentOffsets(dom, parent, renderNode) {
+  let current = parent.firstChild;
+  let firstNeedle = renderNode.firstNode;
+  let lastNeedle = renderNode.lastNode;
+  let firstNode, lastNode;
+  let offset = 0;
+
+  while (current !== firstNeedle) {
+    offset++;
+    current = current.nextSibling;
+  }
+
+  firstNode = offset;
+
+  while (current !== lastNeedle) {
+    offset++;
+    current = current.nextSibling;
+  }
+
+  lastNode = offset;
+
+  return { firstNode, lastNode };
+}
+
+function idFromElement(dom, element, serializationContext) {
+  let id = dom.getAttribute(element, 'data-hbs-node');
+
+  if (id) {
+    return id;
+  }
+
+  id = (serializationContext.id++) + '';
+  dom.setAttribute(element, 'data-hbs-node', id);
+  return id;
+}
+
+export function LastYielded(templateId) {
+  this.templateId = templateId;
+}
+
+LastYielded.prototype.isStableTemplate = function(nextTemplate) {
+  return nextTemplate.id === this.templateId;
+};
+

@@ -1,6 +1,6 @@
 import render from "./render";
 import MorphList from "../morph-range/morph-list";
-import { createChildMorph } from "./render";
+import { createChildMorph, RenderResult, LastYielded } from "./render";
 import { keyLength, shallowCopy } from "../htmlbars-util/object-utils";
 import { validateChildMorphs } from "../htmlbars-util/morph-utils";
 import { RenderState, clearMorph, clearMorphList, renderAndCleanup } from "../htmlbars-util/template-utils";
@@ -79,7 +79,7 @@ import { linkParams } from "../htmlbars-util/morph-utils";
 */
 
 export function wrap(template) {
-  if (template === null) { return null;  }
+  if (template === null) { return null; }
 
   return {
     meta: template.meta,
@@ -98,11 +98,7 @@ export function wrap(template) {
 }
 
 export function wrapForHelper(template, env, scope, morph, renderState, visitor) {
-  if (!template) {
-    return {
-      yieldIn: yieldInShadowTemplate(null, env, scope, morph, renderState, visitor)
-    };
-  }
+  if (!template) { return {}; }
 
   var yieldArgs = yieldTemplate(template, env, scope, morph, renderState, visitor);
 
@@ -111,7 +107,6 @@ export function wrapForHelper(template, env, scope, morph, renderState, visitor)
     arity: template.arity,
     yield: yieldArgs,
     yieldItem: yieldItem(template, env, scope, morph, renderState, visitor),
-    yieldIn: yieldInShadowTemplate(template, env, scope, morph, renderState, visitor),
     raw: template,
 
     render: function(self, blockArguments) {
@@ -145,7 +140,7 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
 
     var scope = parentScope;
 
-    if (morph.lastYielded && isStableTemplate(template, morph.lastYielded)) {
+    if (morph.lastResult && morph.lastYielded.isStableTemplate(template)) {
       return morph.lastResult.revalidateWith(env, undefined, self, blockArguments, visitor);
     }
 
@@ -157,7 +152,14 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
       scope = env.hooks.createChildScope(parentScope);
     }
 
-    morph.lastYielded = { self: self, template: template, shadowTemplate: null };
+    // rehydration
+    if (morph.lastYielded && morph.lastYielded.isStableTemplate(template)) {
+      let renderResult = RenderResult.rehydrate(env, scope, template, { renderNode: morph, self, blockArguments });
+      renderResult.render();
+      return;
+    }
+
+    morph.lastYielded = new LastYielded(template.id);
 
     // Render the template that was selected by the helper
     render(template, env, scope, { renderNode: morph, self: self, blockArguments: blockArguments });
@@ -273,58 +275,6 @@ function yieldItem(template, env, parentScope, morph, renderState, visitor) {
     renderState.morphListToPrune = morphList;
     morph.childNodes = null;
   };
-}
-
-function isStableTemplate(template, lastYielded) {
-  return !lastYielded.shadowTemplate && template === lastYielded.template;
-}
-
-function yieldInShadowTemplate(template, env, parentScope, morph, renderState, visitor) {
-  var hostYield = hostYieldWithShadowTemplate(template, env, parentScope, morph, renderState, visitor);
-
-  return function(shadowTemplate, self) {
-    hostYield(shadowTemplate, env, self, []);
-  };
-}
-
-export function hostYieldWithShadowTemplate(template, env, parentScope, morph, renderState, visitor) {
-  return function(shadowTemplate, env, self, blockArguments) {
-    renderState.morphToClear = null;
-
-    if (morph.lastYielded && isStableShadowRoot(template, shadowTemplate, morph.lastYielded)) {
-      return morph.lastResult.revalidateWith(env, undefined, self, blockArguments, visitor);
-    }
-
-    var shadowScope = env.hooks.createFreshScope();
-    env.hooks.bindShadowScope(env, parentScope, shadowScope, renderState.shadowOptions);
-    blockToYield.arity = template.arity;
-    env.hooks.bindBlock(env, shadowScope, blockToYield);
-
-    morph.lastYielded = { self: self, template: template, shadowTemplate: shadowTemplate };
-
-    // Render the shadow template with the block available
-    render(shadowTemplate.raw, env, shadowScope, { renderNode: morph, self: self, blockArguments: blockArguments });
-  };
-
-  function blockToYield(env, blockArguments, self, renderNode, shadowParent, visitor) {
-    if (renderNode.lastResult) {
-      renderNode.lastResult.revalidateWith(env, undefined, undefined, blockArguments, visitor);
-    } else {
-      var scope = parentScope;
-
-      // Since a yielded template shares a `self` with its original context,
-      // we only need to create a new scope if the template has block parameters
-      if (template.arity) {
-        scope = env.hooks.createChildScope(parentScope);
-      }
-
-      render(template, env, scope, { renderNode: renderNode, self: self, blockArguments: blockArguments });
-    }
-  }
-}
-
-function isStableShadowRoot(template, shadowTemplate, lastYielded) {
-  return template === lastYielded.template && shadowTemplate === lastYielded.shadowTemplate;
 }
 
 function optionsFor(template, inverse, env, scope, morph, visitor) {
