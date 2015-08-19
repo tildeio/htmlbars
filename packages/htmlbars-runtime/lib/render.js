@@ -331,6 +331,7 @@ export function getCachedFragment(template, env) {
 export function rehydrateNode(serializedNodes, renderNode) {
   let dom = renderNode.domHelper;
   let context = renderNode.firstNode.parentNode;
+  dom.restoreAdjacentTextNodes(context);
   let cache = Object.create(null);
 
   renderNode.childNodes = serializedNodes.map(childNode => _rehydrateNode(renderNode, childNode, dom, context, cache));
@@ -368,10 +369,12 @@ function elementFromId(dom, context, id, cache) {
   return element;
 }
 
-export function serializeNode(env, renderNode) {
+export function prepareAndSerializeNode(env, renderNode) {
   let serializationContext = { id: 0 };
 
-  return renderNode.childNodes.map(childNode => _serializeNode(env, childNode, serializationContext));
+  let serialized = renderNode.childNodes.map(childNode => _serializeNode(env, childNode, serializationContext));
+  env.dom.preserveAdjacentTextNodes(renderNode.firstNode.parentNode);
+  return serialized;
 
   //return [{
     //type: 'attr',
@@ -413,18 +416,21 @@ function parentOffsets(dom, parent, renderNode) {
   let firstNeedle = renderNode.firstNode;
   let lastNeedle = renderNode.lastNode;
   let firstNode, lastNode;
+  let offset = 0;
 
   while (current !== firstNeedle) {
+    offset++;
     current = current.nextSibling;
   }
 
-  firstNode = current;
+  firstNode = offset;
 
   while (current !== lastNeedle) {
+    offset++;
     current = current.nextSibling;
   }
 
-  lastNode = current;
+  lastNode = offset;
 
   return { firstNode, lastNode };
 }

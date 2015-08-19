@@ -550,6 +550,32 @@ prototype.parseHTML = function(html, contextualElement) {
   return fragment;
 };
 
+const SHOW_TEXT = 4;
+
+prototype.preserveAdjacentTextNodes = function(root) {
+  let iterator = this.document.createNodeIterator(root, SHOW_TEXT, function(node) {
+    return node.previousSibling && node.previousSibling.nodeType === 3;
+  });
+
+  let node;
+
+  /*jshint boss:true*/
+  while (node = iterator.nextNode()) {
+    let element = this.createElement('script');
+    this.setAttribute(element, 'data-hbs-split', '');
+    node.parentNode.insertBefore(element, node);
+  }
+};
+
+prototype.restoreAdjacentTextNodes = function(root) {
+  let elements = root.querySelectorAll('script[data-hbs-split]');
+
+  for (let i=0, l=elements.length; i<l; i++) {
+    let element = elements[i];
+    element.parentNode.removeChild(element);
+  }
+};
+
 var parsingNode;
 
 // Used to determine whether a URL needs to be sanitized.

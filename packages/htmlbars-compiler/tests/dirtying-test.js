@@ -7,7 +7,7 @@ import defaultHooks from "../htmlbars-runtime/hooks";
 import { merge } from "../htmlbars-util/object-utils";
 import DOMHelper from "../dom-helper";
 import { equalTokens } from "../htmlbars-test-helpers";
-import { rehydrateNode, serializeNode } from "../htmlbars-runtime/render";
+import { rehydrateNode, prepareAndSerializeNode } from "../htmlbars-runtime/render";
 
 var hooks, helpers, partials, env;
 
@@ -678,7 +678,7 @@ test("it is possible to serialize a render node tree", function() {
   let original = result.fragment.firstChild;
   let newRoot = env.dom.createMorph(null, original, original);
   newRoot.ownerNode = newRoot;
-  let node = rehydrateNode(serializeNode(env, result.root), newRoot);
+  let node = rehydrateNode(prepareAndSerializeNode(env, result.root), newRoot);
 
   let scope = env.hooks.createFreshScope();
 
@@ -703,7 +703,7 @@ test("it is possible to serialize a render node tree with recursive templates", 
 
   let newRoot = env.dom.createMorph(null, original, original);
   newRoot.ownerNode = newRoot;
-  let node = rehydrateNode(serializeNode(env, result.root), newRoot);
+  let node = rehydrateNode(prepareAndSerializeNode(env, result.root), newRoot);
 
   let scope = env.hooks.createFreshScope();
 
@@ -717,4 +717,33 @@ test("it is possible to serialize a render node tree with recursive templates", 
   strictEqual(newNode.firstChild.firstChild, godfrey, "the text node is the same");
 
   equalTokens(newNode, '<p title="chancancode"><span>Godfrey</span></p>');
+});
+
+test("it is possible to serialize a template with adjacent text nodes", function() {
+  let template = compile("<p>{{salutation}} {{name}}</p>");
+  let obj = { salutation: 'Mr.', name: 'Godfrey Chan' };
+  let result = template.render(obj, env);
+
+  equalTokens(result.fragment, '<p>Mr. Godfrey Chan</p>');
+
+  let serializedChildNodes = prepareAndSerializeNode(env, result.root);
+  let serialized = result.fragment.cloneNode(true).firstChild;
+
+  // TODO: actually serialize and parse this, so it works with SimpleDOM and is more accurate
+  // at the moment, this is a sanity check that we didn't leave any adjacent text nodes
+  // around.
+  serialized.normalize();
+
+  let newRoot = env.dom.createMorph(null, serialized, serialized);
+
+  let newNode = rehydrateNode(serializedChildNodes, newRoot);
+
+  let scope = env.hooks.createFreshScope();
+
+  obj.name = "Yehuda Katz";
+  result = RenderResult.rehydrate(env, scope, template.raw, { renderNode: newNode, self: obj });
+  newRoot.ownerNode = newRoot;
+  result.render();
+
+  equalTokens(result.root.firstNode, '<p>Mr. Yehuda Katz</p>');
 });
