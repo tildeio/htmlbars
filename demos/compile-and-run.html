@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <title>HTMLBars example</title>
+    <style type="text/css">
+      #inputs {
+        overflow: hidden;
+      }
+
+      #inputs label {
+        float: left;
+      }
+
+      #inputs textarea {
+        display: block;
+        width: 300px;
+        height: 150px;
+        margin: 5px 10px 5px 0px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="inputs">
+      <label>
+        Data
+        <textarea id="data">{"name": "Bob"}</textarea>
+      </label>
+
+      <label>
+        Template
+        <textarea id="template">Howdy {{name}}</textarea>
+      </label>
+
+      <label>
+        Options
+        <textarea id="options">{ "disableComponentGeneration": true }</textarea>
+      </label>
+    </div>
+
+    <div id="actions">
+      <button id="compile-template">Compile</button>
+      <button id="run-template">Compile and Render</button>
+    </div>
+
+    <hr>
+
+    <div id="output"></div>
+
+    <script src="../assets/loader.js"></script>
+    <script src="../amd/dom-helper.amd.js"></script>
+    <script src="../amd/htmlbars-compiler.amd.js"></script>
+    <script src="../amd/htmlbars-runtime.amd.js"></script>
+    <script>
+      var compileBtn = document.getElementById('compile-template'),
+          runBtn     = document.getElementById('run-template'),
+          dataarea   = document.getElementById('data'),
+          textarea   = document.getElementById('template'),
+          output     = document.getElementById('output'),
+          skipRender = document.getElementById('skip-render'),
+          options    = document.getElementById('options');
+
+      var compiler    = requireModule('htmlbars-compiler'),
+          DOMHelper   = requireModule('dom-helper').default,
+          hooks       = requireModule('htmlbars-runtime').hooks,
+          render      = requireModule('htmlbars-runtime').render;
+
+      var templateSource = localStorage.getItem('templateSource');
+      var data = localStorage.getItem('templateData');
+
+      if (templateSource) {
+        textarea.value = templateSource;
+      }
+
+      if (data) {
+        dataarea.value = data;
+      }
+
+      compileBtn.addEventListener('click', function() { compile(false); });
+      runBtn.addEventListener('click', function() { compile(true); });
+
+      function compile(shouldRender) {
+        var source = textarea.value,
+            data = dataarea.value,
+            compileOptions;
+
+        localStorage.setItem('templateSource', source);
+        localStorage.setItem('templateData', data);
+
+        try {
+          data = JSON.parse(data);
+        } catch(e) {
+          data = {};
+        }
+
+        try {
+          compileOptions = JSON.parse(options.value);
+        } catch(e) {
+          compileOptions = {};
+        }
+
+        try {
+          var templateSpec = compiler.compileSpec(source, compileOptions);
+          output.innerHTML = '<pre><code>' + templateSpec + '</code></pre>';
+
+          if (shouldRender) {
+            var template = compiler.template(templateSpec);
+
+            var env = { dom: new DOMHelper(), hooks: hooks, helpers: {} };
+
+            var scope = hooks.createFreshScope();
+
+            hooks.bindSelf(env, scope, data);
+
+            var dom = render(template, env, scope, { contextualElement: output }).fragment;
+
+            output.innerHTML += '<hr><pre><code>' + JSON.stringify(data) + '</code></pre><hr>';
+            output.appendChild(dom);
+          }
+        } catch(e) {
+          output.innerHTML += 'Failure to run template: '+e.message;
+          throw(e);
+        }
+      }
+    </script>
+  </body>
+</html>

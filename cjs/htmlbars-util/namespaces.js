@@ -1,0 +1,23 @@
+exports.__esModule = true;
+exports.getAttrNamespace = getAttrNamespace;
+// ref http://dev.w3.org/html5/spec-LC/namespaces.html
+var defaultNamespaces = {
+  html: 'http://www.w3.org/1999/xhtml',
+  mathml: 'http://www.w3.org/1998/Math/MathML',
+  svg: 'http://www.w3.org/2000/svg',
+  xlink: 'http://www.w3.org/1999/xlink',
+  xml: 'http://www.w3.org/XML/1998/namespace'
+};
+
+function getAttrNamespace(attrName) {
+  var namespace;
+
+  var colonIndex = attrName.indexOf(':');
+  if (colonIndex !== -1) {
+    var prefix = attrName.slice(0, colonIndex);
+    namespace = defaultNamespaces[prefix];
+  }
+
+  return namespace || null;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0bWxiYXJzLXV0aWwvbmFtZXNwYWNlcy5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFDQSxJQUFJLGlCQUFpQixHQUFHO0FBQ3RCLE1BQUksRUFBRSw4QkFBOEI7QUFDcEMsUUFBTSxFQUFFLG9DQUFvQztBQUM1QyxLQUFHLEVBQUUsNEJBQTRCO0FBQ2pDLE9BQUssRUFBRSw4QkFBOEI7QUFDckMsS0FBRyxFQUFFLHNDQUFzQztDQUM1QyxDQUFDOztBQUVLLFNBQVMsZ0JBQWdCLENBQUMsUUFBUSxFQUFFO0FBQ3pDLE1BQUksU0FBUyxDQUFDOztBQUVkLE1BQUksVUFBVSxHQUFHLFFBQVEsQ0FBQyxPQUFPLENBQUMsR0FBRyxDQUFDLENBQUM7QUFDdkMsTUFBSSxVQUFVLEtBQUssQ0FBQyxDQUFDLEVBQUU7QUFDckIsUUFBSSxNQUFNLEdBQUcsUUFBUSxDQUFDLEtBQUssQ0FBQyxDQUFDLEVBQUUsVUFBVSxDQUFDLENBQUM7QUFDM0MsYUFBUyxHQUFHLGlCQUFpQixDQUFDLE1BQU0sQ0FBQyxDQUFDO0dBQ3ZDOztBQUVELFNBQU8sU0FBUyxJQUFJLElBQUksQ0FBQztDQUMxQiIsImZpbGUiOiJodG1sYmFycy11dGlsL25hbWVzcGFjZXMuanMiLCJzb3VyY2VzQ29udGVudCI6WyIvLyByZWYgaHR0cDovL2Rldi53My5vcmcvaHRtbDUvc3BlYy1MQy9uYW1lc3BhY2VzLmh0bWxcbnZhciBkZWZhdWx0TmFtZXNwYWNlcyA9IHtcbiAgaHRtbDogJ2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwnLFxuICBtYXRobWw6ICdodHRwOi8vd3d3LnczLm9yZy8xOTk4L01hdGgvTWF0aE1MJyxcbiAgc3ZnOiAnaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnLFxuICB4bGluazogJ2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsnLFxuICB4bWw6ICdodHRwOi8vd3d3LnczLm9yZy9YTUwvMTk5OC9uYW1lc3BhY2UnXG59O1xuXG5leHBvcnQgZnVuY3Rpb24gZ2V0QXR0ck5hbWVzcGFjZShhdHRyTmFtZSkge1xuICB2YXIgbmFtZXNwYWNlO1xuXG4gIHZhciBjb2xvbkluZGV4ID0gYXR0ck5hbWUuaW5kZXhPZignOicpO1xuICBpZiAoY29sb25JbmRleCAhPT0gLTEpIHtcbiAgICB2YXIgcHJlZml4ID0gYXR0ck5hbWUuc2xpY2UoMCwgY29sb25JbmRleCk7XG4gICAgbmFtZXNwYWNlID0gZGVmYXVsdE5hbWVzcGFjZXNbcHJlZml4XTtcbiAgfVxuXG4gIHJldHVybiBuYW1lc3BhY2UgfHwgbnVsbDtcbn1cbiJdfQ==

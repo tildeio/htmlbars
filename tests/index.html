@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HTMLBars Test Suite</title>
+  <link rel="stylesheet" href="qunit.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="qunit.js"></script>
+  <script src="/testem.js"></script>
+  <script src="../assets/loader.js"></script>
+  <script src="packages-config.js"></script>
+  <script src="export-test-results.js"></script>
+
+  <script>
+    QUnit.config.urlConfig.push({ id: 'nojshint', label: "No JSHint"});
+
+    function injectScript(url) {
+      document.write(unescape('%3Cscript src="'+url+'"%3E%3C/script%3E'));
+    }
+
+    function injectVendoredLib(packageName) {
+      injectScript("../vendor/" + packageName + ".amd.js");
+    }
+
+    function injectLib(packageName) {
+      injectScript("../amd/" + packageName + ".amd.js");
+    }
+
+    function injectTests(packageName) {
+      injectScript(packageName + "-tests.amd.js");
+    }
+
+    function keys(o) {
+      var arr = [];
+      for (var k in o) {
+        arr.push(k);
+      }
+      return arr;
+    }
+
+    function getPackagesToTest() {
+      if (QUnit.urlParams.packages) {
+        return QUnit.urlParams.packages.split(',');
+      } else {
+        return keys(packagesConfig.dependencies);
+      }
+    }
+
+    // Recursively merge all the dependencies for this configuration of
+    // packages to ensure that we only inject each dependency once.
+    // Testing dependencies are only injected for the packages being tested.
+    var packagesToTest = getPackagesToTest();
+    var packagesToInject = {};
+
+    function visitPackage(name) {
+      if (packagesToInject[name]) return;
+      packagesToInject[name] = true;
+
+      var deps = packagesConfig.dependencies[name];
+    }
+
+    for (var i = 0; i < packagesToTest.length; i++) {
+      var packageName = packagesToTest[i];
+
+      visitPackage(packageName);
+
+      var deps = packagesConfig.dependencies[packageName];
+    }
+
+    // Inject lib packages
+    for (var packageName in packagesToInject) {
+      if (packagesConfig.vendored[packageName]) {
+        injectVendoredLib(packageName);
+      } else {
+        injectLib(packageName);
+      }
+    }
+
+    // Inject test packages
+    for (var i = 0; i < packagesToTest.length; i++) {
+      injectTests(packagesToTest[i]);
+    }
+  </script>
+
+  <script>
+    // Run tests
+    for (var key in requireModule.entries) {
+      var root = key.split('/')[0];
+
+      for (var i = 0; i < packagesToTest.length; i++) {
+        if (root === packagesToTest[i] + '-tests') {
+          if (key.match(/\.jshint$/) && QUnit.urlParams.nojshint) {
+            continue;
+          }
+          requireModule(key);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
