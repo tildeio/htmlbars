@@ -10,7 +10,7 @@ var xhtmlNamespace = "http://www.w3.org/1999/xhtml",
 
 var foreignNamespaces = ['foreignObject', 'desc', 'title'];
 
-var dom, i, foreignNamespace;
+var dom, i;
 
 // getAttributes may return null or "" for nonexistent attributes,
 // depending on the browser.  So we find it out here and use it later.
@@ -18,6 +18,22 @@ var disabledAbsentValue = (function (){
   var div = document.createElement("input");
   return div.getAttribute("disabled");
 })();
+
+function runForeignNamespaceTests(foreignNamespace) {
+  test(`#createElement of div with ${foreignNamespace} contextual element`, function(){
+    var node = dom.createElement('div', document.createElementNS(svgNamespace, foreignNamespace));
+    equal(node.tagName, 'DIV');
+    equal(node.namespaceURI, xhtmlNamespace);
+  });
+
+  test(`#parseHTML of div with ${foreignNamespace}`, function(){
+    dom.setNamespace(xhtmlNamespace);
+    var foreignObject = document.createElementNS(svgNamespace, foreignNamespace),
+        nodes = dom.parseHTML('<div></div>', foreignObject).childNodes;
+    equal(nodes[0].tagName, 'DIV');
+    equal(nodes[0].namespaceURI, xhtmlNamespace);
+  });
+}
 
 QUnit.module('DOM Helper', {
   beforeEach: function() {
@@ -597,21 +613,7 @@ test("#setProperty removes namespaced attr with undefined", function() {
 });
 
 for (i=0;i<foreignNamespaces.length;i++) {
-  foreignNamespace = foreignNamespaces[i];
-
-  test('#createElement of div with '+foreignNamespace+' contextual element', function(){
-    var node = dom.createElement('div', document.createElementNS(svgNamespace, foreignNamespace));
-    equal(node.tagName, 'DIV');
-    equal(node.namespaceURI, xhtmlNamespace);
-  }); // jshint ignore:line
-
-  test('#parseHTML of div with '+foreignNamespace, function(){
-    dom.setNamespace(xhtmlNamespace);
-    var foreignObject = document.createElementNS(svgNamespace, foreignNamespace),
-        nodes = dom.parseHTML('<div></div>', foreignObject).childNodes;
-    equal(nodes[0].tagName, 'DIV');
-    equal(nodes[0].namespaceURI, xhtmlNamespace);
-  }); // jshint ignore:line
+  runForeignNamespaceTests(foreignNamespaces[i]);
 }
 
 test('#parseHTML of path with svg contextual element', function(){

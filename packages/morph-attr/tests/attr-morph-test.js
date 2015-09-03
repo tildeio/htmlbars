@@ -166,51 +166,52 @@ var badTags = [
   { tag: 'iframe', attr: 'src'}
 ];
 
-for (var i=0, l=badTags.length; i<l; i++) {
-  (function(){
-    var subject = badTags[i];
+function runBadTagTests(subject){
+  test(subject.tag +" "+subject.attr+" is sanitized when using blacklisted protocol", function() {
+    var element = document.createElement(subject.tag);
+    var morph = domHelper.createAttrMorph(element, subject.attr);
+    morph.setContent('javascript://example.com');
 
-    test(subject.tag +" "+subject.attr+" is sanitized when using blacklisted protocol", function() {
-      var element = document.createElement(subject.tag);
-      var morph = domHelper.createAttrMorph(element, subject.attr);
+    equal( element.getAttribute(subject.attr),
+           'unsafe:javascript://example.com',
+           'attribute is escaped');
+  });
+
+  test(subject.tag +" "+subject.attr+" is not sanitized when using non-whitelisted protocol with a SafeString", function() {
+    var element = document.createElement(subject.tag);
+    var morph = domHelper.createAttrMorph(element, subject.attr);
+    try {
+      morph.setContent(new SafeString('javascript://example.com'));
+
+      equal( element.getAttribute(subject.attr),
+             'javascript://example.com',
+             'attribute is not escaped');
+    } catch(e) {
+      // IE does not allow javascript: to be set on img src
+      ok(true, 'caught exception '+e);
+    }
+  });
+
+  test(subject.tag +" "+subject.attr+" is not sanitized when using unsafe attr morph", function() {
+    var element = document.createElement(subject.tag);
+    var morph = domHelper.createUnsafeAttrMorph(element, subject.attr);
+    try {
       morph.setContent('javascript://example.com');
 
       equal( element.getAttribute(subject.attr),
-            'unsafe:javascript://example.com',
-            'attribute is escaped');
-    });
+             'javascript://example.com',
+             'attribute is not escaped');
+    } catch(e) {
+      // IE does not allow javascript: to be set on img src
+      ok(true, 'caught exception '+e);
+    }
+  });
+}
 
-    test(subject.tag +" "+subject.attr+" is not sanitized when using non-whitelisted protocol with a SafeString", function() {
-      var element = document.createElement(subject.tag);
-      var morph = domHelper.createAttrMorph(element, subject.attr);
-      try {
-        morph.setContent(new SafeString('javascript://example.com'));
+for (var i=0, l=badTags.length; i<l; i++) {
+  var subject = badTags[i];
 
-        equal( element.getAttribute(subject.attr),
-              'javascript://example.com',
-              'attribute is not escaped');
-      } catch(e) {
-        // IE does not allow javascript: to be set on img src
-        ok(true, 'caught exception '+e);
-      }
-    });
-
-    test(subject.tag +" "+subject.attr+" is not sanitized when using unsafe attr morph", function() {
-      var element = document.createElement(subject.tag);
-      var morph = domHelper.createUnsafeAttrMorph(element, subject.attr);
-      try {
-        morph.setContent('javascript://example.com');
-
-        equal( element.getAttribute(subject.attr),
-              'javascript://example.com',
-              'attribute is not escaped');
-      } catch(e) {
-        // IE does not allow javascript: to be set on img src
-        ok(true, 'caught exception '+e);
-      }
-    });
-
-  })(); //jshint ignore:line
+  runBadTagTests(subject);
 }
 
 if (document && document.createElementNS) {
