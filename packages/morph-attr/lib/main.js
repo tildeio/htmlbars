@@ -68,7 +68,7 @@ function AttrMorph(element, attrName, domHelper) {
   this.element = element;
   this.domHelper = domHelper;
   this.attrName = attrName;
-  this.state = {};
+  this._state = undefined;
   this.isDirty = false;
   this.isSubtreeDirty = false;
   this.escaped = true;
@@ -86,6 +86,20 @@ function AttrMorph(element, attrName, domHelper) {
   this.namespace = undefined;
   this.didInit();
 }
+
+AttrMorph.prototype.getState = function() {
+  if (!this._state) {
+    this._state = {};
+  }
+
+  return this._state;
+};
+
+AttrMorph.prototype.setState = function(newState) {
+  /*jshint -W093 */
+
+  return this._state = newState;
+};
 
 AttrMorph.prototype.didInit = function() {};
 AttrMorph.prototype.willSetContent = function() {};

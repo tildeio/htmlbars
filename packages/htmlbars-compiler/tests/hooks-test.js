@@ -39,7 +39,7 @@ test("the invokeHelper hook gets invoked to call helpers", function() {
     invoked = true;
     deepEqual(params, [{ value: "hello world" }]);
     ok(scope.self, "the scope was passed");
-    ok(morph.state, "the morph was passed");
+    ok(morph.getState(), "the morph was passed");
 
     return { value: helper.call(context, [params[0].value], hash, templates) };
   };

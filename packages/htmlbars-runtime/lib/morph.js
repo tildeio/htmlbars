@@ -5,7 +5,7 @@ var guid = 1;
 function HTMLBarsMorph(domHelper, contextualElement) {
   this.super$constructor(domHelper, contextualElement);
 
-  this.state = {};
+  this._state = undefined;
   this.ownerNode = null;
   this.isDirty = false;
   this.isSubtreeDirty = false;
@@ -45,5 +45,20 @@ HTMLBarsMorph.attach = function (domHelper, contextualElement, firstNode, lastNo
 var prototype = HTMLBarsMorph.prototype = Object.create(MorphBase.prototype);
 prototype.constructor = HTMLBarsMorph;
 prototype.super$constructor = MorphBase;
+
+prototype.getState = function() {
+  if (!this._state) {
+    this._state = {};
+  }
+
+  return this._state;
+};
+
+prototype.setState = function(newState) {
+  /*jshint -W093 */
+
+  return this._state = newState;
+};
+
 
 export default HTMLBarsMorph;
