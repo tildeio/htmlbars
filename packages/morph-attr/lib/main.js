@@ -120,8 +120,10 @@ AttrMorph.prototype.destroy = function() {
   this.domHelper = null;
 };
 
+AttrMorph.prototype._$superAttrMorph = AttrMorph;
+
 function PropertyAttrMorph(element, attrName, domHelper) {
-  AttrMorph.call(this, element, attrName, domHelper);
+  this._$superAttrMorph(element, attrName, domHelper);
 }
 
 PropertyAttrMorph.prototype = Object.create(AttrMorph.prototype);
@@ -129,7 +131,7 @@ PropertyAttrMorph.prototype._update = updateProperty;
 PropertyAttrMorph.prototype._get = getProperty;
 
 function AttributeNSAttrMorph(element, attrName, domHelper, namespace) {
-  AttrMorph.call(this, element, attrName, domHelper);
+  this._$superAttrMorph(element, attrName, domHelper);
   this.namespace = namespace;
 }
 
@@ -138,7 +140,7 @@ AttributeNSAttrMorph.prototype._update = updateAttributeNS;
 AttributeNSAttrMorph.prototype._get = getAttributeNS;
 
 function AttributeAttrMorph(element, attrName, domHelper) {
-  AttrMorph.call(this, element, attrName, domHelper);
+  this._$superAttrMorph(element, attrName, domHelper);
 }
 
 AttributeAttrMorph.prototype = Object.create(AttrMorph.prototype);
