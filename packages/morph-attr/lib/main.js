@@ -45,20 +45,24 @@ var UNSET = { unset: true };
 var guid = 1;
 
 AttrMorph.create = function(element, attrName, domHelper, namespace) {
-  let ns = namespace !== undefined ? namespace : getAttrNamespace(attrName);
+  let ns = getAttrNamespace(attrName, namespace);
 
   if (ns) {
     return new AttributeNSAttrMorph(element, attrName, domHelper, ns);
   } else {
-    let { normalized, type } = normalizeProperty(element, attrName);
-
-    if (element.namespaceURI === svgNamespace || attrName === 'style' || type === 'attr') {
-      return new AttributeAttrMorph(element, normalized, domHelper);
-    } else {
-      return new PropertyAttrMorph(element, normalized, domHelper);
-    }
+    return createNonNamespacedAttrMorph(element, attrName, domHelper);
   }
 };
+
+function createNonNamespacedAttrMorph(element, attrName, domHelper) {
+  let { normalized, type } = normalizeProperty(element, attrName);
+
+  if (element.namespaceURI === svgNamespace || attrName === 'style' || type === 'attr') {
+    return new AttributeAttrMorph(element, normalized, domHelper);
+  } else {
+    return new PropertyAttrMorph(element, normalized, domHelper);
+  }
+}
 
 function AttrMorph(element, attrName, domHelper) {
   this.element = element;
