@@ -33,23 +33,23 @@ function Block(render, template, blockOptions) {
   this.arity = template.arity;
 }
 
-Block.prototype.invoke = function(env, blockArguments, self, renderNode, parentScope, visitor) {
+Block.prototype.invoke = function(env, blockArguments, _self, renderNode, parentScope, visitor) {
   if (renderNode.lastResult) {
-    renderNode.lastResult.revalidateWith(env, undefined, self, blockArguments, visitor);
+    renderNode.lastResult.revalidateWith(env, undefined, _self, blockArguments, visitor);
   } else {
-    this._firstRender(env, blockArguments, self, renderNode, parentScope);
+    this._firstRender(env, blockArguments, _self, renderNode, parentScope);
   }
 };
 
-Block.prototype._firstRender = function(env, blockArguments, self, renderNode, parentScope) {
+Block.prototype._firstRender = function(env, blockArguments, _self, renderNode, parentScope) {
   let options = { renderState: new RenderState(renderNode) };
   let { render, template, blockOptions: { scope } } = this;
   let shadowScope = scope ? env.hooks.createChildScope(scope) : env.hooks.createFreshScope();
 
   env.hooks.bindShadowScope(env, parentScope, shadowScope, this.blockOptions.options);
 
-  if (self !== undefined) {
-    env.hooks.bindSelf(env, shadowScope, self);
+  if (_self !== undefined) {
+    env.hooks.bindSelf(env, shadowScope, _self);
   } else if (this.blockOptions.self !== undefined) {
     env.hooks.bindSelf(env, shadowScope, this.blockOptions.self);
   }
