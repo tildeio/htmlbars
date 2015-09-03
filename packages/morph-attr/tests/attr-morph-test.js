@@ -43,20 +43,33 @@ test("can update property", function(){
   equal(element.disabled, false, 'disabled property is set');
 });
 
+function detectBrowserMaxLengthValues() {
+  let element = domHelper.createElement('input');
+  let initialMaxLength = element.maxLength;
+
+  element.maxLength = 1; // set a valid value
+  element.maxLength = null; // set to falsey value
+
+  let maxLengthAfterReset = element.maxLength;
+
+  return { initialMaxLength, maxLengthAfterReset };
+}
+
 test("input.maxLength", function(){
+  // different browsers have different defaults FF: -1, Chrome/Blink: 524288;
+  let { initialMaxLength, maxLengthAfterReset } = detectBrowserMaxLengthValues();
+
   var element = domHelper.createElement('input');
   var morph = domHelper.createAttrMorph(element, 'maxLength');
-  // different browsers have different defaults FF: -1, Chrome/Blink: 524288;
-  var MAX_LENGTH = element.maxLength;
 
   morph.setContent(null);
-  equal(element.maxLength, MAX_LENGTH, 'property is w/e is default');
+  equal(element.maxLength, initialMaxLength, 'property is w/e is default');
 
   morph.setContent(1);
   equal(element.maxLength, 1, 'should be 1');
 
   morph.setContent(null);
-  equal(element.maxLength, 0, 'property 0, result of element.maxLength = ""');
+  equal(element.maxLength, maxLengthAfterReset, 'property 0, result of element.maxLength = ""');
 });
 
 test("input.maxlength (all lowercase)", function(){
