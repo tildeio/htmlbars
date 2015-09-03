@@ -83,6 +83,7 @@ function AttrMorph(element, attrName, domHelper) {
   this.ownerNode = null;
   this.rendered = false;
   this._renderedInitially = false;
+  this.namespace = undefined;
   this.didInit();
 }
 
