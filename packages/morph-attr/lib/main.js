@@ -48,7 +48,6 @@ function AttrMorph(element, attrName, domHelper, namespace) {
   this.element = element;
   this.domHelper = domHelper;
   this.namespace = namespace !== undefined ? namespace : getAttrNamespace(attrName);
-  this.state = {};
   this.isDirty = false;
   this.isSubtreeDirty = false;
   this.escaped = true;
