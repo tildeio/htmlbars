@@ -170,7 +170,7 @@ function dirtyCheck(_env, morph, visitor, callback) {
     callback(visitor);
   } else {
     if (morph.buildChildEnv) {
-      env = morph.buildChildEnv(morph.state, env);
+      env = morph.buildChildEnv(morph.getState(), env);
     }
     validateChildMorphs(env, morph, visitor);
   }

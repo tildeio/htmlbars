@@ -53,17 +53,17 @@ test("Morph order is preserved when rerendering with duplicate keys", function()
   equalTokens(result.fragment, `<ul><li>A1</li><li>A2</li><li>B1</li><li>B2</li></ul>`);
 
   let morph = result.nodes[0].morphList.firstChildMorph;
-  morph.state.initialName = 'A1';
-  morph.nextMorph.state.initialName = 'A2';
-  morph.nextMorph.nextMorph.state.initialName = 'B1';
-  morph.nextMorph.nextMorph.nextMorph.state.initialName = 'B2';
+  morph.getState().initialName = 'A1';
+  morph.nextMorph.getState().initialName = 'A2';
+  morph.nextMorph.nextMorph.getState().initialName = 'B1';
+  morph.nextMorph.nextMorph.nextMorph.getState().initialName = 'B2';
 
   function getNames() {
     let names = [];
     let morph = result.nodes[0].morphList.firstChildMorph;
 
     while (morph) {
-      names.push(morph.state.initialName);
+      names.push(morph.getState().initialName);
       morph = morph.nextMorph;
     }
 

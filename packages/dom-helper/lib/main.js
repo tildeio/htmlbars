@@ -113,9 +113,23 @@ function ElementMorph(element, dom, namespace) {
   this.namespace = namespace;
   this.guid = "element" + guid++;
 
-  this.state = {};
+  this._state = undefined;
   this.isDirty = true;
 }
+
+ElementMorph.prototype.getState = function() {
+  if (!this._state) {
+    this._state = {};
+  }
+
+  return this._state;
+};
+
+ElementMorph.prototype.setState = function(newState) {
+  /*jshint -W093 */
+
+  return this._state = newState;
+};
 
 // renderAndCleanup calls `clear` on all items in the morph map
 // just before calling `destroy` on the morph.
@@ -412,7 +426,7 @@ prototype.cloneNode = function(element, deep){
 prototype.AttrMorphClass = AttrMorph;
 
 prototype.createAttrMorph = function(element, attrName, namespace){
-  return new this.AttrMorphClass(element, attrName, this, namespace);
+  return this.AttrMorphClass.create(element, attrName, this, namespace);
 };
 
 prototype.ElementMorphClass = ElementMorph;

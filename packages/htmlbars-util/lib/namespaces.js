@@ -7,7 +7,11 @@ var defaultNamespaces = {
   xml: 'http://www.w3.org/XML/1998/namespace'
 };
 
-export function getAttrNamespace(attrName) {
+export function getAttrNamespace(attrName, detectedNamespace) {
+  if (detectedNamespace) {
+    return detectedNamespace;
+  }
+
   var namespace;
 
   var colonIndex = attrName.indexOf(':');

@@ -1,4 +1,4 @@
-import render from "./render";
+import render, { RenderOptions } from "./render";
 import MorphList from "../morph-range/morph-list";
 import { createChildMorph } from "./render";
 import { keyLength, shallowCopy } from "../htmlbars-util/object-utils";
@@ -88,11 +88,10 @@ export function wrap(template) {
     render: function(self, env, options, blockArguments) {
       var scope = env.hooks.createFreshScope();
 
-      options = options || {};
-      options.self = self;
-      options.blockArguments = blockArguments;
+      let contextualElement = options && options.contextualElement;
+      let renderOptions = new RenderOptions(null, self, blockArguments, contextualElement);
 
-      return render(template, env, scope, options);
+      return render(template, env, scope, renderOptions);
     }
   };
 }
@@ -155,7 +154,8 @@ function yieldTemplate(template, env, parentScope, morph, renderState, visitor) 
     morph.lastYielded = { self: self, template: template, shadowTemplate: null };
 
     // Render the template that was selected by the helper
-    render(template, env, scope, { renderNode: morph, self: self, blockArguments: blockArguments });
+    let renderOptions = new RenderOptions(morph, self, blockArguments);
+    render(template, env, scope, renderOptions);
   };
 }
 
@@ -571,13 +571,13 @@ export function handleKeyword(path, morph, env, scope, params, hash, template, i
 
   var lastState, newState;
   if (keyword.setupState) {
-    lastState = shallowCopy(morph.state);
-    newState = morph.state = keyword.setupState(lastState, env, scope, params, hash);
+    lastState = shallowCopy(morph.getState());
+    newState = morph.setState(keyword.setupState(lastState, env, scope, params, hash));
   }
 
   if (keyword.childEnv) {
     // Build the child environment...
-    env = keyword.childEnv(morph.state, env);
+    env = keyword.childEnv(morph.getState(), env);
 
     // ..then save off the child env builder on the render node. If the render
     // node tree is re-rendered and this node is not dirty, the child env
@@ -589,7 +589,7 @@ export function handleKeyword(path, morph, env, scope, params, hash, template, i
   var firstTime = !morph.rendered;
 
   if (keyword.isEmpty) {
-    var isEmpty = keyword.isEmpty(morph.state, env, scope, params, hash);
+    var isEmpty = keyword.isEmpty(morph.getState(), env, scope, params, hash);
 
     if (isEmpty) {
       if (!firstTime) { clearMorph(morph, env, false); }

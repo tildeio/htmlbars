@@ -43,20 +43,33 @@ test("can update property", function(){
   equal(element.disabled, false, 'disabled property is set');
 });
 
+function detectBrowserMaxLengthValues() {
+  let element = domHelper.createElement('input');
+  let initialMaxLength = element.maxLength;
+
+  element.maxLength = 1; // set a valid value
+  element.maxLength = null; // set to falsey value
+
+  let maxLengthAfterReset = element.maxLength;
+
+  return { initialMaxLength, maxLengthAfterReset };
+}
+
 test("input.maxLength", function(){
+  // different browsers have different defaults FF: -1, Chrome/Blink: 524288;
+  let { initialMaxLength, maxLengthAfterReset } = detectBrowserMaxLengthValues();
+
   var element = domHelper.createElement('input');
   var morph = domHelper.createAttrMorph(element, 'maxLength');
-  // different browsers have different defaults FF: -1, Chrome/Blink: 524288;
-  var MAX_LENGTH = element.maxLength;
 
   morph.setContent(null);
-  equal(element.maxLength, MAX_LENGTH, 'property is w/e is default');
+  equal(element.maxLength, initialMaxLength, 'property is w/e is default');
 
   morph.setContent(1);
   equal(element.maxLength, 1, 'should be 1');
 
   morph.setContent(null);
-  equal(element.maxLength, 0, 'property 0, result of element.maxLength = ""');
+  equal(element.maxLength, maxLengthAfterReset, 'property 0, result of element.maxLength = ""');
 });
 
 test("input.maxlength (all lowercase)", function(){
@@ -153,51 +166,52 @@ var badTags = [
   { tag: 'iframe', attr: 'src'}
 ];
 
-for (var i=0, l=badTags.length; i<l; i++) {
-  (function(){
-    var subject = badTags[i];
+function runBadTagTests(subject){
+  test(subject.tag +" "+subject.attr+" is sanitized when using blacklisted protocol", function() {
+    var element = document.createElement(subject.tag);
+    var morph = domHelper.createAttrMorph(element, subject.attr);
+    morph.setContent('javascript://example.com');
 
-    test(subject.tag +" "+subject.attr+" is sanitized when using blacklisted protocol", function() {
-      var element = document.createElement(subject.tag);
-      var morph = domHelper.createAttrMorph(element, subject.attr);
+    equal( element.getAttribute(subject.attr),
+           'unsafe:javascript://example.com',
+           'attribute is escaped');
+  });
+
+  test(subject.tag +" "+subject.attr+" is not sanitized when using non-whitelisted protocol with a SafeString", function() {
+    var element = document.createElement(subject.tag);
+    var morph = domHelper.createAttrMorph(element, subject.attr);
+    try {
+      morph.setContent(new SafeString('javascript://example.com'));
+
+      equal( element.getAttribute(subject.attr),
+             'javascript://example.com',
+             'attribute is not escaped');
+    } catch(e) {
+      // IE does not allow javascript: to be set on img src
+      ok(true, 'caught exception '+e);
+    }
+  });
+
+  test(subject.tag +" "+subject.attr+" is not sanitized when using unsafe attr morph", function() {
+    var element = document.createElement(subject.tag);
+    var morph = domHelper.createUnsafeAttrMorph(element, subject.attr);
+    try {
       morph.setContent('javascript://example.com');
 
       equal( element.getAttribute(subject.attr),
-            'unsafe:javascript://example.com',
-            'attribute is escaped');
-    });
+             'javascript://example.com',
+             'attribute is not escaped');
+    } catch(e) {
+      // IE does not allow javascript: to be set on img src
+      ok(true, 'caught exception '+e);
+    }
+  });
+}
 
-    test(subject.tag +" "+subject.attr+" is not sanitized when using non-whitelisted protocol with a SafeString", function() {
-      var element = document.createElement(subject.tag);
-      var morph = domHelper.createAttrMorph(element, subject.attr);
-      try {
-        morph.setContent(new SafeString('javascript://example.com'));
+for (var i=0, l=badTags.length; i<l; i++) {
+  var subject = badTags[i];
 
-        equal( element.getAttribute(subject.attr),
-              'javascript://example.com',
-              'attribute is not escaped');
-      } catch(e) {
-        // IE does not allow javascript: to be set on img src
-        ok(true, 'caught exception '+e);
-      }
-    });
-
-    test(subject.tag +" "+subject.attr+" is not sanitized when using unsafe attr morph", function() {
-      var element = document.createElement(subject.tag);
-      var morph = domHelper.createUnsafeAttrMorph(element, subject.attr);
-      try {
-        morph.setContent('javascript://example.com');
-
-        equal( element.getAttribute(subject.attr),
-              'javascript://example.com',
-              'attribute is not escaped');
-      } catch(e) {
-        // IE does not allow javascript: to be set on img src
-        ok(true, 'caught exception '+e);
-      }
-    });
-
-  })(); //jshint ignore:line
+  runBadTagTests(subject);
 }
 
 if (document && document.createElementNS) {

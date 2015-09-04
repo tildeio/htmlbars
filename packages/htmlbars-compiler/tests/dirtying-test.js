@@ -584,6 +584,9 @@ QUnit.skip("Setting up a manual element renders and revalidates", function() {
 });
 
 test("It is possible to nest multiple templates into a manual element", function() {
+  var layout = compile("<em>{{attrs.foo}}. {{yield}}</em>");
+  var template = compile("{{#manual-element foo='foo' bar='baz' tld='net'}}Hello {{world}}!{{/manual-element}}");
+
   hooks.keywords['manual-element'] = {
     render: function(morph, env, scope, params, hash, template, inverse, visitor) {
       var attributes = {
@@ -598,7 +601,7 @@ test("It is possible to nest multiple templates into a manual element", function
 
       var layoutBlock = blockFor(render, layout.raw, {
         yieldTo: contentBlock,
-        self: { attrs: hash },
+        self: { attrs: hash }
       });
 
       var elementBlock = blockFor(render, elementTemplate, {
@@ -612,8 +615,6 @@ test("It is possible to nest multiple templates into a manual element", function
     isStable: function() { return true; }
   };
 
-  var layout = compile("<em>{{attrs.foo}}. {{yield}}</em>");
-  var template = compile("{{#manual-element foo='foo' bar='baz' tld='net'}}Hello {{world}}!{{/manual-element}}");
   var result = template.render({ world: "world" }, env);
 
   equalTokens(result.fragment, "<span title='Tom Dale' href='http://tomdale.net' data-bar='baz'><em>foo. Hello world!</em></span>");
