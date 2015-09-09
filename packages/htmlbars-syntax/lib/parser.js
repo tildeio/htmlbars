@@ -2,7 +2,7 @@ import { parse } from "./handlebars/compiler/base";
 import * as syntax from "../htmlbars-syntax";
 import EventedTokenizer from "../simple-html-tokenizer/evented-tokenizer";
 import EntityParser from "../simple-html-tokenizer/entity-parser";
-import fullCharRefs from "../simple-html-tokenizer/char-refs/full";
+import namedCharRefs from '../simple-html-tokenizer/html5-named-char-refs';
 import handlebarsNodeVisitors from "./parser/handlebars-node-visitors";
 import tokenizerEventHandlers from "./parser/tokenizer-event-handlers";
 
@@ -25,7 +25,7 @@ export function preprocess(html, options) {
 
 export default preprocess;
 
-const entityParser = new EntityParser(fullCharRefs);
+const entityParser = new EntityParser(namedCharRefs);
 
 export function Parser(source, options) {
   this.options = options || {};
