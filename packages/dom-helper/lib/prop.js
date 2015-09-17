@@ -53,7 +53,11 @@ var ATTR_OVERRIDES = {
     // Some version of IE (like IE9) actually throw an exception
     // if you set input.type = 'something-unknown'
     type: true,
-    form: true
+    form: true,
+    // Chrome 46.0.2464.0: 'autocorrect' in document.createElement('input') === false
+    // Safari 8.0.7: 'autocorrect' in document.createElement('input') === false
+    // Mobile Safari (iOS 8.4 simulator): 'autocorrect' in document.createElement('input') === true
+    autocorrect: true
   },
 
   // element.form is actually a legitimate readOnly property, that is to be

@@ -3,7 +3,7 @@ import { normalizeProperty } from 'dom-helper/prop';
 QUnit.module('dom-helper prop');
 
 test('type.attr, for element props that for one reason or another need to be treated as attrs', function() {
-  expect(12);
+  expect(13);
 
   [
     { tagName: 'TEXTAREA', key: 'form' },
@@ -11,6 +11,7 @@ test('type.attr, for element props that for one reason or another need to be tre
     { tagName: 'INPUT',    key: 'type' },
     { tagName: 'INPUT',    key: 'list' },
     { tagName: 'INPUT',    key: 'form' },
+    { tagName: 'INPUT',    key: 'autocorrect' },
     { tagName: 'OPTION',   key: 'form' },
     { tagName: 'INPUT',    key: 'form' },
     { tagName: 'BUTTON',   key: 'form' },
