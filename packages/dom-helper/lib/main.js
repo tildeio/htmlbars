@@ -47,16 +47,16 @@ var canClone = doc && (function(document){
 
 // This is not the namespace of the element, but of
 // the elements inside that elements.
-function interiorNamespace(element){
+function interiorNamespace(element) {
   if (
     element &&
     element.namespaceURI === svgNamespace &&
     !svgHTMLIntegrationPoints[element.tagName]
   ) {
     return svgNamespace;
-  } else {
-    return null;
   }
+
+  return null;
 }
 
 // The HTML spec allows for "omitted start tags". These tags are optional
@@ -351,19 +351,18 @@ if (doc && doc.createElementNS) {
   // Only opt into namespace detection if a contextualElement
   // is passed.
   prototype.createElement = function(tagName, contextualElement) {
-    var namespace = this.namespace;
+    let namespace = this.namespace;
     if (contextualElement) {
       if (tagName === 'svg') {
         namespace = svgNamespace;
       } else {
-        namespace = interiorNamespace(contextualElement);
+        namespace = typeof contextualElement === 'string' ? contextualElement : interiorNamespace(contextualElement);
       }
     }
     if (namespace) {
       return this.document.createElementNS(namespace, tagName);
-    } else {
-      return this.document.createElement(tagName);
     }
+    return this.document.createElement(tagName);
   };
   prototype.setAttributeNS = function(element, namespace, name, value) {
     element.setAttributeNS(namespace, name, String(value));
