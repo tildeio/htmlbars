@@ -347,6 +347,13 @@ test("Stripping - removes unnecessary text nodes", function() {
   ]));
 });
 
+test("Stripping - comments", function() {
+  var t = "{{!~}}\n  <li> foo </li>{{!~}}\n  ";
+  astEqual(t, b.program([
+    b.element('li', [], [], [b.text(' foo ')])
+  ]));
+});
+
 // TODO: Make these throw an error.
 //test("Awkward mustache in unquoted attribute value", function() {
 //  var t = "<div class=a{{foo}}></div>";
