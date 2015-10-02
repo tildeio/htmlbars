@@ -57,7 +57,10 @@ var ATTR_OVERRIDES = {
     // Chrome 46.0.2464.0: 'autocorrect' in document.createElement('input') === false
     // Safari 8.0.7: 'autocorrect' in document.createElement('input') === false
     // Mobile Safari (iOS 8.4 simulator): 'autocorrect' in document.createElement('input') === true
-    autocorrect: true
+    autocorrect: true,
+    // Will throw an exception(https://github.com/emberjs/ember.js/issues/12413),
+    // if you set input.size = 'auto'
+    size: true
   },
 
   // element.form is actually a legitimate readOnly property, that is to be
