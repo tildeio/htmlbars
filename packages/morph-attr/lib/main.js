@@ -110,7 +110,7 @@ AttrMorph.prototype.setContent = function (value) {
   if (this.lastValue === value) { return; }
   this.lastValue = value;
 
-  if (this.escaped) {
+  if (this.escaped && value) {
     var sanitized = sanitizeAttributeValue(this.domHelper, this.element, this.attrName, value);
     this._update(sanitized, this.namespace);
   } else {
