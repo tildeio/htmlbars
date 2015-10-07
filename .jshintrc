@@ -8,6 +8,7 @@
     "notEqual": true,
     "strictEqual": true,
     "deepEqual": true,
+    "throws": true,
     "ok": true
   },
   "camelcase": true,

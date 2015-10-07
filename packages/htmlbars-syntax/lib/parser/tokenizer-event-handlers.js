@@ -65,7 +65,7 @@ export default {
 
     let tag = this.currentNode;
     tag.loc = b.loc(tagLine, tagColumn, line, column);
-    
+
     if (tag.type === 'StartTag') {
       this.finishStartTag();
 
@@ -79,6 +79,8 @@ export default {
 
   finishStartTag: function() {
     let { name, attributes, modifiers } = this.currentNode;
+
+    validateStartTag(this.currentNode, this.tokenizer);
 
     let loc = b.loc(this.tokenizer.tagLine, this.tokenizer.tagColumn);
     let element = b.element(name, attributes, modifiers, [], loc);
@@ -198,6 +200,17 @@ function assembleConcatenatedValue(parts) {
   }
 
   return b.concat(parts);
+}
+
+function validateStartTag(tag, tokenizer) {
+  var error;
+
+  // no support for <script> tags
+  if (tag.name === "script") {
+    error = "SCRIPT tags are not allowed in HTMLBars templates (line " + tokenizer.tagLine + ")";
+  }
+
+  if (error) { throw new Error(error); }
 }
 
 function validateEndTag(tag, element, selfClosing) {
