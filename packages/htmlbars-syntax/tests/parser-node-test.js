@@ -5,6 +5,13 @@ import { astEqual } from "./support";
 
 QUnit.module("[htmlbars-syntax] Parser - AST");
 
+test('raise an error for script tags with line number', function () {
+  throws(function () {
+    parse("error\n line 2: <script>\n</script>");
+    // Make sure the error gives the correct line number
+  }, /line 2/);
+});
+
 test("a simple piece of content", function() {
   var t = 'some content';
   astEqual(t, b.program([

@@ -65,7 +65,7 @@ export default {
 
     let tag = this.currentNode;
     tag.loc = b.loc(tagLine, tagColumn, line, column);
-    
+
     if (tag.type === 'StartTag') {
       this.finishStartTag();
 
@@ -79,6 +79,8 @@ export default {
 
   finishStartTag: function() {
     let { name, attributes, modifiers } = this.currentNode;
+
+    validateStartTag(this.currentNode, this.tokenizer);
 
     let loc = b.loc(this.tokenizer.tagLine, this.tokenizer.tagColumn);
     let element = b.element(name, attributes, modifiers, [], loc);
@@ -200,22 +202,25 @@ function assembleConcatenatedValue(parts) {
   return b.concat(parts);
 }
 
-function validateEndTag(tag, element, selfClosing) {
-  var error;
+function validateStartTag(tag, tokenizer) {
+  // No support for <script> tags
+  if (tag.name === "script") {
+    throw new Error("`SCRIPT` tags are not allowed in HTMLBars templates (on line " + tokenizer.tagLine + ")");
+  }
+}
 
+function validateEndTag(tag, element, selfClosing) {
   if (voidMap[tag.name] && !selfClosing) {
     // EngTag is also called by StartTag for void and self-closing tags (i.e.
     // <input> or <br />, so we need to check for that here. Otherwise, we would
     // throw an error for those cases.
-    error = "Invalid end tag " + formatEndTagInfo(tag) + " (void elements cannot have end tags).";
+    throw new Error("Invalid end tag " + formatEndTagInfo(tag) + " (void elements cannot have end tags).");
   } else if (element.tag === undefined) {
-    error = "Closing tag " + formatEndTagInfo(tag) + " without an open tag.";
+    throw new Error("Closing tag " + formatEndTagInfo(tag) + " without an open tag.");
   } else if (element.tag !== tag.name) {
-    error = "Closing tag " + formatEndTagInfo(tag) + " did not match last open tag `" + element.tag + "` (on line " +
-            element.loc.start.line + ").";
+    throw new Error("Closing tag " + formatEndTagInfo(tag) + " did not match last open tag `" + element.tag + "` (on line " +
+            element.loc.start.line + ").");
   }
-
-  if (error) { throw new Error(error); }
 }
 
 function formatEndTagInfo(tag) {
