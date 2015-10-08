@@ -159,7 +159,7 @@ module.exports = function () {
     // jsHint tests
     var jsHintLibTree = new Funnel(libTree, {
       include: [new RegExp(packageName), new RegExp(packageName + '.+\.js$')],
-      exclude: [/htmlbars-(syntax|util)\/handlebars/],
+      exclude: [/htmlbars-(syntax|util)\/handlebars/, 'morph-range*'],
       destDir: packageName+'-tests/'
     });
     testTrees.push(jsHint(jsHintLibTree, { destFile: '/' + packageName + '-tests/jshint-lib.js' }));
