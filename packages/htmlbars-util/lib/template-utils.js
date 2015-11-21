@@ -116,7 +116,7 @@ export function renderAndCleanup(morph, env, options, shadowOptions, callback) {
       // If we don't see the key in handledMorphs, it wasn't
       // yielded in and we can safely remove it from DOM.
       if (!(item.key in handledMorphs)) {
-        delete morphMap[item.key];
+        morphMap[item.key] = undefined;
         clearMorph(item, env, true);
         item.destroy();
       }
@@ -167,7 +167,7 @@ export function clearMorphList(morphList, morph, env) {
 
   while (item) {
     let next = item.nextMorph;
-    delete morph.morphMap[item.key];
+    morph.morphMap[item.key] = undefined;
     clearMorph(item, env, true);
     item.destroy();
 
