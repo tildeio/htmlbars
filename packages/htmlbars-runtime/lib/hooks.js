@@ -104,7 +104,7 @@ export function wrapForHelper(template, env, scope, morph, renderState, visitor)
   return {
     meta: template.meta,
     arity: template.arity,
-    yield: yieldArgs,
+    'yield': yieldArgs, // quoted since it's a reserved word, see issue #420
     yieldItem: yieldItem(template, env, scope, morph, renderState, visitor),
     raw: template,
 
@@ -291,7 +291,7 @@ function optionsFor(template, inverse, env, scope, morph, visitor) {
 function thisFor(options) {
   return {
     arity: options.template.arity,
-    yield: options.template.yield,
+    'yield': options.template.yield, // quoted since it's a reserved word, see issue #420
     yieldItem: options.template.yieldItem,
     yieldIn: options.template.yieldIn
   };
@@ -758,7 +758,8 @@ export var keywords = {
     return true;
   },
 
-  yield: function(morph, env, scope, params, hash, template, inverse, visitor) {
+  // quoted since it's a reserved word, see issue #420
+  'yield': function(morph, env, scope, params, hash, template, inverse, visitor) {
     // the current scope is provided purely for the creation of shadow
     // scopes; it should not be provided to user code.
 
