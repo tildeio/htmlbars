@@ -19,6 +19,35 @@ need special tags in the String for the data binding code to work
 There are also many performance gains in HTMLBars' approach to building
 DOM vs the HTML-unaware string building approach of Handlebars.
 
+# Security 
+
+HTMLBars aims to not only ease interacting with data-bound templates,
+but also to provide it in a secure-by-default way. Thanks to the design
+of HTMLBars it has both handlebars and HTML awareness, this allows for
+best practices by default. For example:
+
+```hbs
+<div>{{fullName}}</div>
+```
+
+ultimately becomes:
+
+```
+var div = document.createElement('div');
+div.textContent = fullName; // when fullName changes
+```
+
+In this example, HTMLBars is aware that values set to `textContent` on a `div`
+is treated by the browser as inert text. In other words, in this scenario HTMLBars
+knows the content is safe, and no escaping is required.
+
+HTML has many interesting contexts, in each HTMLBars aims to do the right thing.
+This may be, using the correct browser API, sanatizing, or disabling a feature 
+entirely.
+
+Needless to say, we take security very seriously. If there is something we missed, 
+please report via the [Ember.js responsible security disclosure system](http://emberjs.com/security/).
+
 # Usage
 
 TODO: much change. This section will be updated shortly.
