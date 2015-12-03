@@ -1,3 +1,5 @@
+/*globals module*/
+
 import Morph from "./htmlbars-runtime/morph";
 import AttrMorph from "./morph-attr";
 import {
@@ -168,6 +170,8 @@ function DOMHelper(_document){
   }
   this.canClone = canClone;
   this.namespace = null;
+
+  installProtocolForURL(this);
 }
 
 var prototype = DOMHelper.prototype;
@@ -564,16 +568,39 @@ prototype.parseHTML = function(html, contextualElement) {
   return fragment;
 };
 
+var URL;
 var parsingNode;
 
-// Used to determine whether a URL needs to be sanitized.
-prototype.protocolForURL = function(url) {
+function installProtocolForURL(domHelper) {
+  var protocol = browserProtocolForURL.call(domHelper, 'foobar:baz');
+
+  // Test to see if our DOM implementation parses
+  // and normalizes URLs.
+  if (protocol === 'foobar:') {
+    // Swap in the method that doesn't do this test now that
+    // we know it works.
+    domHelper.protocolForURL = browserProtocolForURL;
+  } else {
+    // Otherwise, we need to fall back to our own URL parsing.
+    // Global `require` is shadowed by Ember's loader so we have to use the fully
+    // qualified `module.require`.
+    URL = module.require('url');
+    domHelper.protocolForURL = nodeProtocolForURL;
+  }
+}
+
+function browserProtocolForURL(url) {
   if (!parsingNode) {
     parsingNode = this.document.createElement('a');
   }
 
   parsingNode.href = url;
   return parsingNode.protocol;
-};
+}
+
+function nodeProtocolForURL(url) {
+  var protocol = URL.parse(url).protocol;
+  return (protocol === null) ? ':' : protocol;
+}
 
 export default DOMHelper;
