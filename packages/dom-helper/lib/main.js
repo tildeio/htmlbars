@@ -171,7 +171,7 @@ function DOMHelper(_document){
   this.canClone = canClone;
   this.namespace = null;
 
-  installProtocolForURL(this);
+  installEnvironmentSpecificMethods(this);
 }
 
 var prototype = DOMHelper.prototype;
@@ -571,7 +571,7 @@ prototype.parseHTML = function(html, contextualElement) {
 var URL;
 var parsingNode;
 
-function installProtocolForURL(domHelper) {
+function installEnvironmentSpecificMethods(domHelper) {
   var protocol = browserProtocolForURL.call(domHelper, 'foobar:baz');
 
   // Test to see if our DOM implementation parses
@@ -580,13 +580,26 @@ function installProtocolForURL(domHelper) {
     // Swap in the method that doesn't do this test now that
     // we know it works.
     domHelper.protocolForURL = browserProtocolForURL;
-  } else {
+  } else if (typeof module === 'object' && typeof module.require === 'function') {
     // Otherwise, we need to fall back to our own URL parsing.
     // Global `require` is shadowed by Ember's loader so we have to use the fully
     // qualified `module.require`.
     URL = module.require('url');
     domHelper.protocolForURL = nodeProtocolForURL;
+  } else {
+    throw new Error("DOM Helper could not find valid URL parsing mechanism");
   }
+
+  // A SimpleDOM-specific extension that allows us to place HTML directly
+  // into the DOM tree, for when the output target is always serialized HTML.
+  if (domHelper.document.createRawHTMLSection) {
+    domHelper.setMorphHTML = nodeSetMorphHTML;
+  }
+}
+
+function nodeSetMorphHTML(morph, html) {
+  var section = this.document.createRawHTMLSection(html);
+  morph.setNode(section);
 }
 
 function browserProtocolForURL(url) {
