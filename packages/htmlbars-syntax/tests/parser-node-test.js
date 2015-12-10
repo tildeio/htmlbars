@@ -430,6 +430,57 @@ test("Components with disableComponentGeneration === false", function() {
   ]));
 });
 
+test("Contextual components", function() {
+  var t = "<x.foo a=b c='d' e={{f}} id='{{bar}}' class='foo-{{bar}}'>{{a}}{{b}}c{{d}}</x.foo>{{e}}";
+  astEqual(t, b.program([
+    b.component('x.foo', [
+      b.attr('a', b.text('b')),
+      b.attr('c', b.text('d')),
+      b.attr('e', b.mustache(b.path('f'))),
+      b.attr('id', b.concat([ b.path('bar') ])),
+      b.attr('class', b.concat([ b.string('foo-'), b.path('bar') ]))
+    ], b.program([
+      b.mustache(b.path('a')),
+      b.mustache(b.path('b')),
+      b.text('c'),
+      b.mustache(b.path('d'))
+    ])),
+    b.mustache(b.path('e'))
+  ]));
+});
+
+test("Contextual components with disableComponentGeneration", function() {
+  var t = "begin <x.foo>content</x.foo> finish";
+  var actual = parse(t, {
+    disableComponentGeneration: true
+  });
+
+  astEqual(actual, b.program([
+    b.text("begin "),
+    b.element("x.foo", [], [], [
+      b.text("content")
+    ]),
+    b.text(" finish")
+  ]));
+});
+
+test("Contextual components with disableComponentGeneration === false", function() {
+  var t = "begin <x.foo>content</x.foo> finish";
+  var actual = parse(t, {
+    disableComponentGeneration: false
+  });
+
+  astEqual(actual, b.program([
+    b.text("begin "),
+    b.component("x.foo", [],
+      b.program([
+        b.text("content")
+      ])
+    ),
+    b.text(" finish")
+  ]));
+});
+
 test("an HTML comment", function() {
   var t = 'before <!-- some comment --> after';
   astEqual(t, b.program([
