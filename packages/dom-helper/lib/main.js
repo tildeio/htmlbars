@@ -1,4 +1,4 @@
-/*globals module*/
+/*globals module, URL*/
 
 import Morph from "./htmlbars-runtime/morph";
 import AttrMorph from "./morph-attr";
@@ -568,7 +568,7 @@ prototype.parseHTML = function(html, contextualElement) {
   return fragment;
 };
 
-var URL;
+var nodeURL = URL;
 var parsingNode;
 
 function installEnvironmentSpecificMethods(domHelper) {
@@ -580,11 +580,14 @@ function installEnvironmentSpecificMethods(domHelper) {
     // Swap in the method that doesn't do this test now that
     // we know it works.
     domHelper.protocolForURL = browserProtocolForURL;
+  } else if (typeof nodeURL === 'object') {
+    // URL globally provided, likely from FastBoot's sandbox
+    domHelper.protocolForURL = nodeProtocolForURL;
   } else if (typeof module === 'object' && typeof module.require === 'function') {
     // Otherwise, we need to fall back to our own URL parsing.
     // Global `require` is shadowed by Ember's loader so we have to use the fully
     // qualified `module.require`.
-    URL = module.require('url');
+    nodeURL = module.require('url');
     domHelper.protocolForURL = nodeProtocolForURL;
   } else {
     throw new Error("DOM Helper could not find valid URL parsing mechanism");
@@ -612,7 +615,7 @@ function browserProtocolForURL(url) {
 }
 
 function nodeProtocolForURL(url) {
-  var protocol = URL.parse(url).protocol;
+  var protocol = nodeURL.parse(url).protocol;
   return (protocol === null) ? ':' : protocol;
 }
 
