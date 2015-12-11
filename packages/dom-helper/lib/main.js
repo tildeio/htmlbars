@@ -568,7 +568,7 @@ prototype.parseHTML = function(html, contextualElement) {
   return fragment;
 };
 
-var nodeURL = URL;
+var nodeURL;
 var parsingNode;
 
 function installEnvironmentSpecificMethods(domHelper) {
@@ -580,8 +580,9 @@ function installEnvironmentSpecificMethods(domHelper) {
     // Swap in the method that doesn't do this test now that
     // we know it works.
     domHelper.protocolForURL = browserProtocolForURL;
-  } else if (typeof nodeURL === 'object') {
+  } else if (typeof URL === 'object') {
     // URL globally provided, likely from FastBoot's sandbox
+    nodeURL = URL;
     domHelper.protocolForURL = nodeProtocolForURL;
   } else if (typeof module === 'object' && typeof module.require === 'function') {
     // Otherwise, we need to fall back to our own URL parsing.
