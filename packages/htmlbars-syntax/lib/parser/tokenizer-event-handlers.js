@@ -99,7 +99,7 @@ export default {
     element.loc.end.line = this.tokenizer.line;
     element.loc.end.column = this.tokenizer.column;
 
-    if (disableComponentGeneration || element.tag.indexOf("-") === -1) {
+    if (disableComponentGeneration || cannotBeComponent(element.tag)) {
       appendChild(parent, element);
     } else {
       let program = b.program(element.children);
@@ -200,6 +200,11 @@ function assembleConcatenatedValue(parts) {
   }
 
   return b.concat(parts);
+}
+
+function cannotBeComponent(tagName) {
+  return tagName.indexOf("-") === -1 &&
+      tagName.indexOf(".") === -1;
 }
 
 function validateStartTag(tag, tokenizer) {
