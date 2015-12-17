@@ -835,7 +835,7 @@ export function partial(renderNode, env, scope, path) {
   that represents a range of content with a value.
 */
 export function range(morph, env, scope, path, value, visitor) {
-  if (handleRedirect(morph, env, scope, path, [value], {}, null, null, visitor)) {
+  if (handleRedirect(morph, env, scope, path, [], {}, null, null, visitor)) {
     return;
   }
 

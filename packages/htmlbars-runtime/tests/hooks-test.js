@@ -85,3 +85,24 @@ test("createChildScope hook creates a new object for `blocks`", function() {
   strictEqual(scope.blocks.notInherited, undefined);
   strictEqual(child.blocks.notInherited, childBlock);
 });
+
+test("range redirect sends empty test", function() {
+  // For a redirect to component
+  let oldComponentHook = env.hooks.component;
+  let oldClassify = env.hooks.classify;
+
+  env.hooks.component = function(morph, env, scope, path, params) {
+    equal(params.length, 0, 'params is empty');
+  };
+  env.hooks.classify = function() {
+    return 'component';
+  };
+
+  // Test body
+  let scope = env.hooks.createFreshScope();
+
+  env.hooks.range(null, env, scope, 'component-path', [], {});
+
+  env.hooks.classify = oldClassify;
+  env.hooks.component = oldComponentHook;
+});
