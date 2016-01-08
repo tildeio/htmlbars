@@ -1,7 +1,7 @@
 {
   "name": "htmlbars",
   "dependencies": {
-    "simple-html-tokenizer": "tildeio/simple-html-tokenizer#c4787e3f5d91c5f979994c8736a5f36613f93c51"
+    "simple-html-tokenizer": "tildeio/simple-html-tokenizer#v0.2.1"
   },
   "devDependencies": {
     "loader": "stefanpenner/loader.js#7f79173fd5c61dc256af9aa01c56d50ebfec10fe",

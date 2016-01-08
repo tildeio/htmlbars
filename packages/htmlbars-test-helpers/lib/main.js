@@ -1,4 +1,4 @@
-import { tokenize } from "../simple-html-tokenizer";
+import { tokenize } from "../simple-html-tokenizer/index";
 import { forEach } from "../htmlbars-util/array-utils";
 
 export function equalInnerHTML(fragment, html) {
