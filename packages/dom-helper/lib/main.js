@@ -523,11 +523,23 @@ prototype.insertBoundary = function(fragment, index) {
   this.insertBefore(fragment, this.createTextNode(''), child);
 };
 
-prototype.setMorphHTML = function(morph, html) {
-  morph.setHTML(html);
+// We plan to remove this eventually, and move to using `setInnerHTML`
+// and `insertAdjacentHTML` as the main APIs, so please try not to
+// introduce new usage if it can be avoided.
+prototype.parseHTML = function(html, contextualElement) {
+  if (typeof this.document.createRawHTMLSection === 'function') {
+    // Temporary workaround to support SimpleDOM in node
+    return this._createRawHTMLSection(html);
+  }
+
+  return this._createDocumentFragmentFromHTML(html, contextualElement);
 };
 
-prototype.parseHTML = function(html, contextualElement) {
+prototype._createRawHTMLSection = function(html) {
+  return this.document.createRawHTMLSection(html);
+};
+
+prototype._createDocumentFragmentFromHTML = function(html, contextualElement) {
   var childNodes;
 
   if (interiorNamespace(contextualElement) === svgNamespace) {
