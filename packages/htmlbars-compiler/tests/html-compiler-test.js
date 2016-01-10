@@ -141,7 +141,7 @@ test("Unquoted attribute value with multiple nodes throws an exception", functio
     return new Error(
       `An unquoted attribute value must be a string or a mustache, ` +
       `preceeded by whitespace or a '=' character, and ` +
-      `followed by whitespace or a '>' character (on line ${line})`
+      `followed by whitespace, a '>' character or a '/>' (on line ${line})`
     );
   }
 });
