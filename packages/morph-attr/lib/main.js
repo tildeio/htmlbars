@@ -9,8 +9,16 @@ function getProperty() {
 
 function updateProperty(value) {
   if (this._renderedInitially === true || !isAttrRemovalValue(value)) {
-    // do not render if initial value is undefined or null
-    this.domHelper.setPropertyStrict(this.element, this.attrName, value);
+    let element = this.element;
+    let attrName = this.attrName;
+
+    if (attrName === 'value' && element.tagName === 'INPUT' && element.value === value) {
+      // Do nothing. Attempts to avoid accidently changing the input cursor location.
+      // See https://github.com/tildeio/htmlbars/pull/447 for more details.
+    } else {
+      // do not render if initial value is undefined or null
+      this.domHelper.setPropertyStrict(element, attrName, value);
+    }
   }
 
   this._renderedInitially = true;

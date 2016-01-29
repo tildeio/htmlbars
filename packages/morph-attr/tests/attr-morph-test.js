@@ -2,6 +2,7 @@
 
 import DOMHelper from "../dom-helper";
 import SafeString from "htmlbars-util/safe-string";
+import AttrMorph from "morph-attr";
 
 var svgNamespace = "http://www.w3.org/2000/svg",
     xlinkNamespace = "http://www.w3.org/1999/xlink";
@@ -248,4 +249,28 @@ test("embed src as data uri is sanitized", function() {
   equal( element.getAttribute('src'),
         'unsafe:data:image/svg+xml;base64,PH',
         'attribute is escaped');
+});
+
+// Regression test for https://github.com/tildeio/htmlbars/pull/447.
+test("the value property of an input element is not set if the value hasn't changed", function() {
+  let calls = 0;
+
+  let domHelperStub = {
+    setPropertyStrict() {
+      calls++;
+    }
+  };
+
+  let input = document.createElement('input');
+  let morph = AttrMorph.create(input, 'value', domHelperStub);
+
+  equal(calls, 0);
+  morph.setContent('one');
+  equal(calls, 1);
+  morph.setContent('one');
+  equal(calls, 1);
+  morph.setContent('two');
+  equal(calls, 2);
+  morph.setContent('two');
+  equal(calls, 2);
 });
