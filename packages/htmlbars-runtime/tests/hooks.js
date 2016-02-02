@@ -69,3 +69,22 @@ test("subexr hook correctly handles false-like values", function() {
   equalTokens(result.fragment, '<div data-foo=""></div>');
 
 });
+
+
+test('parameter less helpers are handled correctly', function() {
+  registerHelper('app-url', function() {
+    return 'https://samplewebsite.com';
+  });
+
+  var object = { val: true};
+  var template = compile('<a href="{{app-url}}"></a>');
+  var result = template.render(object, env);
+
+  equalTokens(result.fragment, '<a href="https://samplewebsite.com"></a>');
+
+  object.val = false;
+
+  result.rerender();
+
+  equalTokens(result.fragment, '<a href="https://samplewebsite.com"></a>');
+});

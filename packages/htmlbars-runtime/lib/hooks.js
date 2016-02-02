@@ -944,6 +944,13 @@ export function subexpr(env, scope, helperName, params, hash) {
   resolve a path relative to the current scope.
 */
 export function get(env, scope, path) {
+  if (env.hooks.hasHelper(env, scope, path)) {
+    var helper = env.hooks.lookupHelper(env, scope, path);
+    var result = env.hooks.invokeHelper(null, env, scope, null, [], {}, helper, {});
+    if (result && 'value' in result) {
+      return env.hooks.getValue(result.value);
+    }
+  }
   if (path === '') {
     return scope.self;
   }
