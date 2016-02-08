@@ -42,7 +42,7 @@ is treated by the browser as inert text. In other words, in this scenario HTMLBa
 knows the content is safe, and no escaping is required.
 
 HTML has many interesting contexts, in each HTMLBars aims to do the right thing.
-This may be, using the correct browser API, sanatizing, or disabling a feature 
+This may be, using the correct browser API, sanitizing, or disabling a feature 
 entirely.
 
 Needless to say, we take security very seriously. If there is something we missed, 
