@@ -108,7 +108,9 @@ export default {
       changeLines = leadingNewlineDifference(content.original, content.value);
     }
 
-    this.tokenizer.line = this.tokenizer.line + changeLines;
+    this.tokenizer.line = content.loc.start.line + changeLines;
+    this.tokenizer.column = content.loc.start.column;
+
     this.tokenizer.tokenizePart(content.value);
     this.tokenizer.flushData();
   },
