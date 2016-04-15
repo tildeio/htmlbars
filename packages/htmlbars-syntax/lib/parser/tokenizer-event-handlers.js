@@ -11,6 +11,11 @@ export default {
 
   beginComment: function() {
     this.currentNode = b.comment("");
+    this.currentNode.loc = {
+      source: null,
+      start: b.pos(this.tokenizer.line, this.tokenizer.column),
+      end: null
+    };
   },
 
   appendToCommentData: function(char) {
@@ -18,14 +23,20 @@ export default {
   },
 
   finishComment: function() {
+    this.currentNode.loc.end = b.pos(this.tokenizer.line, this.tokenizer.column);
+
     appendChild(this.currentElement(), this.currentNode);
   },
-
 
   // Data
 
   beginData: function() {
     this.currentNode = b.text();
+    this.currentNode.loc = {
+      source: null,
+      start: b.pos(this.tokenizer.line, this.tokenizer.column),
+      end: null
+    };
   },
 
   appendToData: function(char) {
@@ -33,6 +44,8 @@ export default {
   },
 
   finishData: function() {
+    this.currentNode.loc.end = b.pos(this.tokenizer.line, this.tokenizer.column);
+
     appendChild(this.currentElement(), this.currentNode);
   },
 
@@ -134,7 +147,8 @@ export default {
       name: "",
       parts: [],
       isQuoted: false,
-      isDynamic: false
+      isDynamic: false,
+      start: b.pos(this.tokenizer.line, this.tokenizer.column)
     };
   },
 
@@ -160,7 +174,14 @@ export default {
     let { name, parts, isQuoted, isDynamic } = this.currentAttribute;
     let value = assembleAttributeValue(parts, isQuoted, isDynamic, this.tokenizer.line);
 
-    this.currentNode.attributes.push(b.attr(name, value));
+    let loc = b.loc(
+      this.currentAttribute.start.line, this.currentAttribute.start.column,
+      this.tokenizer.line, this.tokenizer.column
+    );
+
+    let attribute = b.attr(name, value, loc);
+
+    this.currentNode.attributes.push(attribute);
   }
 };
 
