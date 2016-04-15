@@ -87,11 +87,12 @@ export function buildComponent(tag, attributes, program, loc) {
   };
 }
 
-export function buildAttr(name, value) {
+export function buildAttr(name, value, loc) {
   return {
     type: "AttrNode",
     name: name,
-    value: value
+    value: value,
+    loc: buildLoc(loc)
   };
 }
 
@@ -221,7 +222,7 @@ function buildLoc(startLine, startColumn, endLine, endColumn, source) {
       source: buildSource(source),
       start: buildPosition(startLine, startColumn),
       end: buildPosition(endLine, endColumn)
-    }; 
+    };
   }
 }
 
