@@ -616,7 +616,10 @@ function browserProtocolForURL(url) {
 }
 
 function nodeProtocolForURL(url) {
-  var protocol = nodeURL.parse(url).protocol;
+  var protocol = null;
+  if (typeof url === 'string') {
+    protocol = nodeURL.parse(url).protocol;
+  }
   return (protocol === null) ? ':' : protocol;
 }
 
