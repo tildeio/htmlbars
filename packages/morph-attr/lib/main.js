@@ -32,7 +32,7 @@ function updateAttribute(value) {
   if (isAttrRemovalValue(value)) {
     this.domHelper.removeAttribute(this.element, this.attrName);
   } else {
-    this.domHelper.setAttribute(this.element, this.attrName, value);
+    this.domHelper.setAttribute(this.element, this.attrName, normalizeValue(value));
   }
 }
 
@@ -46,6 +46,14 @@ function updateAttributeNS(value) {
   } else {
     this.domHelper.setAttributeNS(this.element, this.namespace, this.attrName, value);
   }
+}
+
+function normalizeValue(value) {
+  if (value === true) {
+    return '';
+  }
+
+  return value;
 }
 
 var UNSET = { unset: true };
