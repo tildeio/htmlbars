@@ -13,7 +13,7 @@ export default {
     this.currentNode = b.comment("");
     this.currentNode.loc = {
       source: null,
-      start: b.pos(this.tokenizer.tagLine, this.tokenizer.tagColumn),
+      start: b.pos(this.tagOpenLine, this.tagOpenColumn),
       end: null
     };
   },
@@ -51,6 +51,11 @@ export default {
 
   // Tags - basic
 
+  tagOpen: function() {
+    this.tagOpenLine = this.tokenizer.line;
+    this.tagOpenColumn = this.tokenizer.column;
+  },
+
   beginStartTag: function() {
     this.currentNode = {
       type: 'StartTag',
@@ -74,10 +79,10 @@ export default {
   },
 
   finishTag: function() {
-    let { tagLine, tagColumn, line, column } = this.tokenizer;
+    let { line, column } = this.tokenizer;
 
     let tag = this.currentNode;
-    tag.loc = b.loc(tagLine, tagColumn, line, column);
+    tag.loc = b.loc(this.tagOpenLine, this.tagOpenColumn, line, column);
 
     if (tag.type === 'StartTag') {
       this.finishStartTag();
@@ -95,7 +100,7 @@ export default {
 
     validateStartTag(this.currentNode, this.tokenizer);
 
-    let loc = b.loc(this.tokenizer.tagLine, this.tokenizer.tagColumn);
+    let loc = b.loc(this.tagOpenLine, this.tagOpenColumn);
     let element = b.element(name, attributes, modifiers, [], loc);
     this.elementStack.push(element);
   },
