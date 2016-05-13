@@ -28,7 +28,23 @@ function getAttribute() {
   return this.domHelper.getAttribute(this.element, this.attrName);
 }
 
-function updateAttribute(value) {
+// normalize to be more inline with updateProperty behavior
+function normalizeAttributeValue(value) {
+  if (value === false || value === undefined || value === null) {
+    return null;
+  }
+  if (value === true) {
+    return '';
+  }
+  // onclick function etc in SSR
+  if (typeof value === 'function') {
+    return null;
+  }
+  return String(value);
+}
+
+function updateAttribute(_value) {
+  var value = normalizeAttributeValue(_value);
   if (isAttrRemovalValue(value)) {
     this.domHelper.removeAttribute(this.element, this.attrName);
   } else {
@@ -40,7 +56,8 @@ function getAttributeNS() {
   return this.domHelper.getAttributeNS(this.element, this.namespace, this.attrName);
 }
 
-function updateAttributeNS(value) {
+function updateAttributeNS(_value) {
+  var value = normalizeAttributeValue(_value);
   if (isAttrRemovalValue(value)) {
     this.domHelper.removeAttribute(this.element, this.attrName);
   } else {
