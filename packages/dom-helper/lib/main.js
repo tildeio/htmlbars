@@ -277,9 +277,6 @@ prototype.appendText = function(element, text) {
 };
 
 prototype.setAttribute = function(element, name, value) {
-  if (typeof value === 'boolean') {
-    value = '';
-  }
   element.setAttribute(name, String(value));
 };
 
