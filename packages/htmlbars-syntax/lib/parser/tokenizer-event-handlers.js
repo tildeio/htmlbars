@@ -154,7 +154,7 @@ export default {
       isQuoted: false,
       isDynamic: false,
       // beginAttribute isn't called until after the first char is consumed
-      start: b.pos(this.tokenizer.line, this.tokenizer.column - 1)
+      start: b.pos(this.tokenizer.line, this.tokenizer.column)
     };
   },
 
