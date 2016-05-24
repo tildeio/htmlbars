@@ -132,6 +132,15 @@ test("can remove attribute with undefined", function(){
   equal(element.getAttribute('data-bop'), undefined, 'data-bop attribute is removed');
 });
 
+test("can remove `download` attribute with null", function(){
+  var element = domHelper.createElement('a');
+  var morph = domHelper.createAttrMorph(element, 'download');
+  morph.setContent('file.pdf');
+  equal(element.getAttribute('download'), 'file.pdf', 'download attribute is set');
+  morph.setContent(null);
+  equal(element.getAttribute('download'), undefined, 'download attribute is removed');
+});
+
 test("can remove ns attribute with undefined", function(){
   var element = domHelper.createElement('svg');
   domHelper.setAttribute(element, 'xlink:title', 'Great Title', xlinkNamespace);

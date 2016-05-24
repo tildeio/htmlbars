@@ -39,6 +39,8 @@ export function normalizeProperty(element, slotName) {
 // * strange spec outlier
 var ATTR_OVERRIDES = {
 
+  A: { download: true },
+
   // phantomjs < 2.0 lets you set it as a prop but won't reflect it
   // back to the attribute. button.getAttribute('type') === null
   BUTTON: { type: true, form: true },
