@@ -1,6 +1,7 @@
 import HydrationOpcodeCompiler from "../htmlbars-compiler/hydration-opcode-compiler";
 import { preprocess } from "../htmlbars-syntax/parser";
 import { compile } from "../htmlbars-compiler/compiler";
+import { buildStatement } from "../htmlbars-util/template-utils";
 
 function opcodesFor(html, options) {
   var ast = preprocess(html, options),
@@ -93,39 +94,39 @@ function testCompile(string, templateSource, opcodes, ...statementList) {
 
 let s = {
   content(path, loc) {
-    return ['content', path, sloc(...loc)];
+    return buildStatement('content', path, sloc(...loc));
   },
 
   block(name, loc, template=null, params=[], hash=[], inverse=null) {
-    return ['block', name, params, hash, template, inverse, sloc(...loc)];
+    return buildStatement('block', name, params, hash, template, inverse, sloc(...loc));
   },
 
   inline(name, params=[], hash=[], loc=null) {
-    return [ 'inline', name, params, hash, sloc(...loc) ];
+    return buildStatement('inline', name, params, hash, sloc(...loc));
   },
 
   element(name, params=[], hash=[], loc=null) {
-    return [ 'element', name, params, hash, sloc(...loc) ];
+    return buildStatement('element', name, params, hash, sloc(...loc));
   },
 
   attribute(name, expression) {
-    return [ 'attribute', name, expression ];
+    return buildStatement('attribute', name, expression);
   },
 
   component(path, attrs=[], template=null) {
-    return [ 'component', path, attrs, template ];
+    return buildStatement('component', path, attrs, template);
   },
 
   get(path, loc) {
-    return [ 'get', path, sloc(...loc) ];
+    return buildStatement('get', path, sloc(...loc));
   },
 
   concat(...args) {
-    return [ 'concat', args ];
+    return buildStatement('concat', args);
   },
 
   subexpr(name, params=[], hash=[], loc=null) {
-    return [ 'subexpr', name, params, hash, sloc(...loc) ];
+    return buildStatement('subexpr', name, params, hash, sloc(...loc));
   }
 };
 
