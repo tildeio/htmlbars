@@ -36,10 +36,12 @@ function acceptExpression(node, env, scope) {
 
   // Primitive literals are unambiguously non-array representations of
   // themselves.
-  if (typeof node !== 'object' || node === null) {
-    ret.value = node;
-  } else {
+  if (Array.isArray(node)) {
+    // if (node.length !== 7) { throw new Error('FIXME: Invalid statement length!'); }
+
     ret.value = evaluateNode(node, env, scope);
+  } else {
+    ret.value = node;
   }
 
   return ret;

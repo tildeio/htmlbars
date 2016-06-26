@@ -2,7 +2,7 @@ import { visitChildren } from "../htmlbars-util/morph-utils";
 import ExpressionVisitor from "./node-visitor";
 import { AlwaysDirtyVisitor } from "./node-visitor";
 import Morph from "./morph";
-import { clearMorph } from "../htmlbars-util/template-utils";
+import { clearMorph, buildStatement } from "../htmlbars-util/template-utils";
 import voidMap from '../htmlbars-util/void-tag-names';
 
 var svgNamespace = "http://www.w3.org/2000/svg";
@@ -84,13 +84,14 @@ export function manualElement(tagName, attributes, _isEmpty) {
 
   for (var key in attributes) {
     if (typeof attributes[key] === 'string') { continue; }
-    statements.push(["attribute", key, attributes[key]]);
+
+    statements.push(buildStatement("attribute", key, attributes[key]));
   }
 
   var isEmpty = _isEmpty || voidMap[tagName];
 
   if (!isEmpty) {
-    statements.push(['content', 'yield']);
+    statements.push(buildStatement('content', 'yield'));
   }
 
   var template = {
@@ -146,7 +147,7 @@ export function attachAttributes(attributes) {
 
   for (var key in attributes) {
     if (typeof attributes[key] === 'string') { continue; }
-    statements.push(["attribute", key, attributes[key]]);
+    statements.push(buildStatement("attribute", key, attributes[key]));
   }
 
   var template = {

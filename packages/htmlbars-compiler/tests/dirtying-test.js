@@ -2,7 +2,7 @@ import { compile } from "../htmlbars-compiler/compiler";
 import { manualElement } from "../htmlbars-runtime/render";
 import { hostBlock } from "../htmlbars-runtime/hooks";
 import render from "../htmlbars-runtime/render";
-import { blockFor } from "../htmlbars-util/template-utils";
+import { blockFor, buildStatement } from "../htmlbars-util/template-utils";
 import defaultHooks from "../htmlbars-runtime/hooks";
 import { merge } from "../htmlbars-util/object-utils";
 import DOMHelper from "../dom-helper";
@@ -591,8 +591,8 @@ test("It is possible to nest multiple templates into a manual element", function
     render: function(morph, env, scope, params, hash, template, inverse, visitor) {
       var attributes = {
         title: "Tom Dale",
-        href: ['concat', ['http://tomdale.', ['get', 'tld']]],
-        'data-bar': ['get', 'bar']
+        href: buildStatement('concat', ['http://tomdale.', buildStatement('get', 'tld')]),
+        'data-bar': buildStatement('get', 'bar')
       };
 
       var elementTemplate = manualElement('span', attributes);

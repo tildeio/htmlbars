@@ -1,5 +1,6 @@
 import { processOpcodes } from "./utils";
 import { array } from "../htmlbars-util/quoting";
+import { buildStatement } from '../htmlbars-util/template-utils';
 
 function HydrationJavaScriptCompiler() {
   this.stack = [];
@@ -141,21 +142,23 @@ prototype.pushLiteral = function(value) {
 };
 
 prototype.pushGetHook = function(path, meta) {
-  this.expressionStack.push([ 'get', path, meta ]);
+  this.expressionStack.push(buildStatement('get', path, meta));
 };
 
 prototype.pushSexprHook = function(meta) {
-  this.expressionStack.push([
+  let statement = buildStatement(
     'subexpr',
     this.expressionStack.pop(),
     this.expressionStack.pop(),
     this.expressionStack.pop(),
     meta
-  ]);
+  );
+
+  this.expressionStack.push(statement);
 };
 
 prototype.pushConcatHook = function() {
-  this.expressionStack.push([ 'concat', this.expressionStack.pop() ]);
+  this.expressionStack.push(buildStatement('concat', this.expressionStack.pop()));
 };
 
 prototype.printSetHook = function(name) {
@@ -163,7 +166,7 @@ prototype.printSetHook = function(name) {
 };
 
 prototype.printBlockHook = function(templateId, inverseId, meta) {
-  this.statements.push([
+  this.pushStatement(
     'block',
     this.expressionStack.pop(), // path
     this.expressionStack.pop(), // params
@@ -171,7 +174,7 @@ prototype.printBlockHook = function(templateId, inverseId, meta) {
     templateId,
     inverseId,
     meta
-  ]);
+  );
 };
 
 prototype.printInlineHook = function(meta) {
@@ -179,38 +182,38 @@ prototype.printInlineHook = function(meta) {
   var params = this.expressionStack.pop();
   var hash = this.expressionStack.pop();
 
-  this.statements.push([ 'inline', path, params, hash, meta ]);
+  this.pushStatement( 'inline', path, params, hash, meta);
 };
 
 prototype.printContentHook = function(meta) {
-  this.statements.push([ 'content', this.expressionStack.pop(), meta]);
+  this.pushStatement('content', this.expressionStack.pop(), meta);
 };
 
 prototype.printComponentHook = function(templateId) {
-  this.statements.push([
+  this.pushStatement(
     'component',
     this.expressionStack.pop(), // path
     this.expressionStack.pop(), // attrs
     templateId
-  ]);
+  );
 };
 
 prototype.printAttributeHook = function() {
-  this.statements.push([
+  this.pushStatement(
     'attribute',
     this.expressionStack.pop(), // name
     this.expressionStack.pop()  // value;
-  ]);
+  );
 };
 
 prototype.printElementHook = function(meta) {
-  this.statements.push([
+  this.pushStatement(
     'element',
     this.expressionStack.pop(), // path
     this.expressionStack.pop(), // params
     this.expressionStack.pop(), // hash
     meta
-  ]);
+  );
 };
 
 prototype.createMorph = function(morphNum, parentPath, startIndex, endIndex, escaped) {
@@ -279,4 +282,8 @@ prototype.getParent = function() {
 
 prototype.lastParent = function() {
   return this.parents[this.parents.length-1];
+};
+
+prototype.pushStatement = function() {
+  this.statements.push(buildStatement(...arguments));
 };

@@ -178,3 +178,14 @@ export function clearMorphList(morphList, morph, env) {
   morphList.clear();
   morph.morphList = null;
 }
+
+export function buildStatement() {
+  let statement = [...arguments];
+
+  // ensure array length is 7 by padding with 0
+  for (let i = arguments.length; i < 7; i++) {
+    statement[i] = 0;
+  }
+
+  return statement;
+}
