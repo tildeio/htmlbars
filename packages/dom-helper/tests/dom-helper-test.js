@@ -366,6 +366,14 @@ test('#parseHTML of select allows the initial implicit option selection to remai
   ok(select.childNodes[0].selected, 'first element is selected');
 });
 
+test('#parseHTML of select allows the initial implicit option selection to remain with multiple options', function(){
+  var div = document.createElement('div');
+  var select = dom.parseHTML('<select><option></option><option></option></select>', div).childNodes[0];
+
+  ok(select.childNodes[0].selected, 'first element is selected');
+});
+
+
 test('#parseHTML of options removes an implicit selection', function(){
   var select = document.createElement('select');
   var options = dom.parseHTML(
