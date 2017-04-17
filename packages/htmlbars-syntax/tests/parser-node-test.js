@@ -528,3 +528,32 @@ test("allow {{undefined}} to be passed as a param", function() {
     b.mustache(b.path('foo'), [b.undefined()])
   ]));
 });
+
+test("allow boolean properties in a HTML component", function() {
+  var t = "<x-foo a=true c=false>{{a}}{{c}}</x-foo>";
+  astEqual(t, b.program([
+    b.component('x-foo', [
+      b.attr('a', b.textBoolean(true)),
+      b.attr('c', b.textBoolean(false))
+    ], b.program([
+      b.mustache(b.path('a')),
+      b.mustache(b.path('c'))
+    ]))
+  ]));
+});
+
+test("verify if property that receive a boolean as true in a HTML component will return a boolean as true", function() {
+  astEqual(b.component('x-foo', [
+      b.attr('a', true)
+    ], b.program([
+      b.text('a')
+    ])).attributes[0].value, true);
+});
+
+test("verify if property that receive a boolean as false in a HTML component will return a boolean as false", function() {
+  astEqual(b.component('x-foo', [
+      b.attr('a', false)
+    ], b.program([
+      b.text('a')
+    ])).attributes[0].value, false);
+});

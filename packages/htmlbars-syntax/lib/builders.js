@@ -104,6 +104,14 @@ export function buildText(chars, loc) {
   };
 }
 
+export function buildTextBoolean(chars, loc) {
+  return {
+    type: "TextNode",
+    chars: JSON.parse(chars),
+    loc: buildLoc(loc)
+  };
+}
+
 // Expressions
 
 export function buildSexpr(path, params, hash) {
@@ -236,6 +244,7 @@ export default {
   component: buildComponent,
   attr: buildAttr,
   text: buildText,
+  textBoolean: buildTextBoolean,
   sexpr: buildSexpr,
   path: buildPath,
   string: buildString,

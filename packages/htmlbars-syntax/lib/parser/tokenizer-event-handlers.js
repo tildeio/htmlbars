@@ -212,7 +212,28 @@ function assembleAttributeValue(parts, isQuoted, isDynamic, line) {
       }
     }
   } else {
-    return b.text((parts.length > 0) ? parts[0] : "");
+    return setAttributeValue(parts);
+  }
+}
+
+function isBoolean(value){
+  let isBool = false;
+  value = value.toString().toLowerCase();
+
+  isBool = value === 'true' || value === 'false' ? true : value;
+
+  return typeof isBool === 'boolean';
+  
+}
+
+function setAttributeValue(parts){
+  let part = (parts.length > 0) ? parts[0] : "";
+  
+  if(isBoolean(part)){
+    return b.textBoolean(part);
+  }
+  else{
+    return b.text(part);
   }
 }
 
