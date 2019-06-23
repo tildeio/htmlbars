@@ -18,6 +18,20 @@ test("can update a dom node", function(){
   equal(element.getAttribute('id'), 'twang', 'id attribute is set');
 });
 
+test("setting content to undefined calls _update with undefiend", function(){
+  var element = domHelper.createElement('div');
+  var morph = domHelper.createAttrMorph(element, 'id');
+  var update = morph._setContent;
+  var calledWith;
+  morph.setContent(undefined);
+  morph._update = function(value) {
+    calledWith = value;
+    return update.apply(morph, arguments);
+  };
+  ok(calledWith === undefined);
+  equal(element.id, '');
+});
+
 test("can clear", function(){
   expect(0);
   var element = domHelper.createElement('div');
