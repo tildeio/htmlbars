@@ -4,6 +4,7 @@ import { createChildMorph } from "./render";
 import { keyLength, shallowCopy } from "../htmlbars-util/object-utils";
 import { validateChildMorphs } from "../htmlbars-util/morph-utils";
 import { RenderState, clearMorph, clearMorphList, renderAndCleanup } from "../htmlbars-util/template-utils";
+import { visitChildren } from "../htmlbars-util/morph-utils";
 import { linkParams } from "../htmlbars-util/morph-utils";
 
 /**
@@ -258,6 +259,11 @@ function yieldItem(template, env, parentScope, morph, renderState, visitor) {
       handledMorphs[foundMorph.key] = foundMorph;
       yieldTemplate(template, env, parentScope, foundMorph, renderState, visitor)(blockArguments, self);
     } else {
+      if(morph.childNodes){
+         visitChildren(morph.childNodes, function (node) {
+           clearMorph(node, env, true);
+         });
+       }
       var childMorph = createChildMorph(env.dom, morph);
       childMorph.key = key;
       morphMap[key] = handledMorphs[key] = childMorph;

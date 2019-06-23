@@ -36,9 +36,9 @@ function commonSetup() {
     }
   });
 
-  registerHelper('each', function(params) {
+  registerHelper('each', function(params, hash, blocks) {
     var list = params[0];
-
+    if(list.length !== 0) {
     for (var i=0, l=list.length; i<l; i++) {
       var item = list[i];
       if (this.arity > 0) {
@@ -47,6 +47,9 @@ function commonSetup() {
         this.yieldItem(item.key, undefined, item);
       }
     }
+  } else if (blocks.inverse.yield) {
+    blocks.inverse.yield();
+  }
   });
 
 }
@@ -488,6 +491,27 @@ test("MorphLists in childNodes are properly cleared", function() {
   result.rerender();
 
   strictEqual(destroyedRenderNodeCount, 6, "cleanup hook was invoked again");
+});
+
+test("MorphLists in each else are properly cleared", function() {
+  var template = compile(`{{#each items as |item|}}<div>{{item.name}}</div>{{else}}<div>{{noItems}}</div>{{/each}}`);
+
+  let a1 = { key: "a", name: "A1" };
+  let a2 = { key: "a", name: "A2" };
+  var object = {items: [], noItems: "items not found"};
+
+  var result = template.render(object , env);
+  equalTokens(result.fragment, `<div>items not found</div>`);
+
+  object.items.push(a1);
+  object.items.push(a2);
+  result.rerender(env, object);
+
+  equalTokens(result.fragment, "<div>A1</div><div>A2</div>");
+  strictEqual(destroyedRenderNodeCount, 1, "cleanup hook was invoked for else morph");
+
+  result.rerender(env, { items: [] });
+  strictEqual(destroyedRenderNodeCount, 5, "cleanup hook was invoked for each morph");
 });
 
 test("Pruned render nodes invoke a cleanup hook when cleared", function() {
