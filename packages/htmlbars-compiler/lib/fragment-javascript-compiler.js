@@ -32,13 +32,21 @@ FragmentJavaScriptCompiler.prototype.createFragment = function() {
   this.source.push(this.indent+'  var '+el+' = dom.createDocumentFragment();\n');
 };
 
-FragmentJavaScriptCompiler.prototype.createElement = function(tagName) {
-  var el = 'el'+(++this.depth);
+FragmentJavaScriptCompiler.prototype.createElement = function(tagName, contextualElement) {
+  let el = 'el'+(++this.depth);
   if (tagName === 'svg') {
     this.pushNamespaceFrame({namespace: svgNamespace, depth: this.depth});
   }
   this.ensureNamespace();
-  this.source.push(this.indent+'  var '+el+' = dom.createElement('+string(tagName)+');\n');
+
+  let toPush = this.indent+'  var '+el+' = dom.createElement('+string(tagName);
+  if (contextualElement) {
+    toPush += ', ' + string(contextualElement);
+  }
+  toPush += ');\n';
+
+  this.source.push(toPush);
+
   if (svgHTMLIntegrationPoints[tagName]) {
     this.pushNamespaceFrame({namespace: null, depth: this.depth});
   }
@@ -60,12 +68,11 @@ FragmentJavaScriptCompiler.prototype.returnNode = function() {
 };
 
 FragmentJavaScriptCompiler.prototype.setAttribute = function(name, value, namespace) {
-  var el = 'el'+this.depth;
+  let el = 'el'+this.depth;
   if (namespace) {
-    this.source.push(this.indent+'  dom.setAttributeNS('+el+','+string(namespace)+','+string(name)+','+string(value)+');\n');
-  } else {
-    this.source.push(this.indent+'  dom.setAttribute('+el+','+string(name)+','+string(value)+');\n');
+    return this.source.push(this.indent+'  dom.setAttributeNS('+el+','+string(namespace)+','+string(name)+','+string(value)+');\n');
   }
+  this.source.push(this.indent+'  dom.setAttribute('+el+','+string(name)+','+string(value)+');\n');
 };
 
 FragmentJavaScriptCompiler.prototype.appendChild = function() {

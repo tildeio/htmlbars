@@ -719,6 +719,22 @@ test("Simple elements can have dashed attributes", function() {
   equalTokens(fragment, '<div aria-label="foo">content</div>');
 });
 
+test("<button is=\"my-button\"> should generate a createElement('button', 'my-button') call", assert => {
+  assert.expect(2);
+
+  const extensionName = 'my-button';
+  const tagName = 'button';
+  const template = compile(`<${tagName} is="${extensionName}"></${tagName}>`);
+
+  let fragment = template.render({ isTrue: true }, env);
+  assert.equal( fragment.fragment.childNodes[0].namespaceURI, extensionName,
+          'button has namespace matching extension name');
+
+  const pattern = new RegExp(`dom\\.createElement\\("${tagName}", "${extensionName}"\\)`);
+
+  assert.equal(pattern.test(fragment.template.buildFragment), true);
+});
+
 QUnit.skip("Block params", function() {
   registerHelper('a', function() {
     this.yieldIn(compile("A({{yield 'W' 'X1'}})"));

@@ -33,7 +33,17 @@ FragmentOpcodeCompiler.prototype.comment = function(comment) {
 };
 
 FragmentOpcodeCompiler.prototype.openElement = function(element) {
-  this.opcode('createElement', [element.tag]);
+  let contextualElement;
+
+  for (let i = 0; i < element.attributes.length; i++) {
+    let attr = element.attributes[i];
+    if (attr.name === 'is') {
+      contextualElement = attr.value.chars;
+      break;
+    }
+  }
+
+  this.opcode('createElement', [element.tag, contextualElement]);
   forEach(element.attributes, this.attribute, this);
 };
 
